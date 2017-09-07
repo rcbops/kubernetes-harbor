@@ -18,7 +18,7 @@
 """
 The script is to map the project ID of Harbor and Admiral, and only for VIC 1.2 migration.
 
-In VIC 1.2, proejct is managed by Admiral rather than Harbor, as part of migration, 
+In VIC 1.2, proejct is managed by Admiral rather than Harbor, as part of migration,
 it needs to unify the proejct ID of Admiral and Harbor.
 """
 
@@ -242,6 +242,3 @@ def main():
 
 if __name__ == '__main__':
     main()
-
-
-			
