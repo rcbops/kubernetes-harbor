@@ -21,4 +21,3 @@ export DOCKER_CONTENT_TRUST_TAGGING_PASSPHRASE=$PASSHRASE
 docker login -u admin -p Harbor12345 $IP
 docker tag tomcat $IP/library/tomcat:latest
 docker push $IP/library/tomcat:latest
-
