@@ -288,17 +288,22 @@ compile_clarity:
 
 compile_normal: compile_clarity compile_adminserver compile_ui compile_jobservice
 
-compile_golangimage: compile_clarity
-	@echo "compiling binary for adminserver (golang image)..."
-	@echo $(GOBASEPATH)
-	@echo $(GOBUILDPATH)
-	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_ADMINSERVER) $(GOBUILDIMAGE) $(GOIMAGEBUILD) -v -o $(GOBUILDMAKEPATH_ADMINSERVER)/$(ADMINSERVERBINARYNAME)
-	@echo "Done."
+redeploy_ui: compile_golangimage_ui
+	make -f make/photon/Makefile build_ui -e DEVFLAG=true
+	make start
 
+compile_golangimage_ui:
 	@echo "compiling binary for ui (golang image)..."
 	@echo $(GOBASEPATH)
 	@echo $(GOBUILDPATH)
 	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_UI) $(GOBUILDIMAGE) $(GOIMAGEBUILD) -v -o $(GOBUILDMAKEPATH_UI)/$(UIBINARYNAME)
+	@echo "Done."
+
+compile_golangimage: compile_clarity compile_golangimage_ui
+	@echo "compiling binary for adminserver (golang image)..."
+	@echo $(GOBASEPATH)
+	@echo $(GOBUILDPATH)
+	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_ADMINSERVER) $(GOBUILDIMAGE) $(GOIMAGEBUILD) -v -o $(GOBUILDMAKEPATH_ADMINSERVER)/$(ADMINSERVERBINARYNAME)
 	@echo "Done."
 
 	@echo "compiling binary for jobservice (golang image)..."
@@ -306,7 +311,7 @@ compile_golangimage: compile_clarity
 	@echo "Done."
 
 compile:check_environment $(COMPILETAG)
-	
+
 prepare:
 	@echo "preparing..."
 	@$(MAKEPATH)/$(PREPARECMD) $(PREPARECMD_PARA)
@@ -327,7 +332,7 @@ build: build_$(BASEIMAGE)
 modify_composefile:
 	@echo "preparing docker-compose file..."
 	@cp $(DOCKERCOMPOSEFILEPATH)/$(DOCKERCOMPOSETPLFILENAME) $(DOCKERCOMPOSEFILEPATH)/$(DOCKERCOMPOSEFILENAME)
-	@$(SEDCMD) -i 's/__version__/$(VERSIONTAG)/g' $(DOCKERCOMPOSEFILEPATH)/$(DOCKERCOMPOSEFILENAME)
+	@$(SEDCMD) -i "" 's/__version__/$(VERSIONTAG)/g' $(DOCKERCOMPOSEFILEPATH)/$(DOCKERCOMPOSEFILENAME)
 
 modify_sourcefiles:
 	@echo "change mode of source files."
@@ -354,7 +359,7 @@ package_online: modify_composefile
 	@$(TARCMD) $(PACKAGE_ONLINE_PARA)
 	@rm -rf $(HARBORPKG)
 	@echo "Done."
-	
+
 package_offline: compile build modify_sourcefiles modify_composefile
 	@echo "packing offline package ..."
 	@cp -r make $(HARBORPKG)
@@ -381,7 +386,7 @@ package_offline: compile build modify_sourcefiles modify_composefile
 	@if [ "$(MIGRATORFLAG)" = "true" ] ; then \
 		echo "pulling DB migrator..."; \
 		$(DOCKERPULL) vmware/harbor-db-migrator:$(MIGRATORVERSION); \
-	fi	
+	fi
 
 	@echo "saving harbor docker image"
 	@$(DOCKERSAVE) $(DOCKERSAVE_PARA) | gzip > $(HARBORPKG)/$(DOCKERIMGFILE).$(VERSIONTAG).tar.gz
