@@ -2,7 +2,7 @@
 
 This section explains the development environment of Harbor with Rackspace Managed Kubernetes Auth on Mac OSX.
 
-Read the [Harbor](#harbor) section. Because master is unstable, all development happens in the [rackspace-mk8s-auth branch](#TODO) which is always based on a stable release branch. The rackspace-mk8s-auth branch will need to be rebased onto newer Harbor stable branches as Harbor evolves.
+Read the [Harbor](#harbor) section. Because master is unstable, all development happens in the [rackspace-mk8s-auth branch](https://github.com/rcbops/kubernetes-harbor/tree/rackspace-mk8s-auth) which is always based on a stable release branch. The rackspace-mk8s-auth branch will need to be rebased onto newer Harbor stable branches as Harbor evolves.
 
 The only thing in the master branch is this section of the README.
 
