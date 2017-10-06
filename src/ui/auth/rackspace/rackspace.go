@@ -59,7 +59,7 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 
 	// build request
 	authRequestBody := fmt.Sprintf("{\"spec\": {\"token\": \"%s\"}}", m.Password)
-	req, err := http.NewRequest(http.MethodPost, authServer+"/authenticate", strings.NewReader(authRequestBody))
+	req, err := http.NewRequest(http.MethodPost, authServer+"/authenticate/token", strings.NewReader(authRequestBody))
 	if err != nil {
 		log.Errorf("Username=%s Error=%v", m.Principal, err)
 		return nil, err
