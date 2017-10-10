@@ -94,6 +94,7 @@ var (
 		common.EmailFrom:     "EMAIL_FROM",
 		common.EmailIdentity: "EMAIL_IDENTITY",
 		common.RegistryURL:   "REGISTRY_URL",
+		common.RackspaceMK8SAuthURL: "RACKSPACE_MK8S_AUTH_URL",
 		common.TokenExpiration: &parser{
 			env:   "TOKEN_EXPIRATION",
 			parse: parseStringToInt,

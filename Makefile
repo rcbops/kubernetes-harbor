@@ -289,7 +289,7 @@ compile_clarity:
 compile_normal: compile_clarity compile_adminserver compile_ui compile_jobservice
 
 redeploy_ui: compile_golangimage_ui
-	make -f make/photon/Makefile build_ui -e DEVFLAG=true
+	make -f make/photon/Makefile build_ui DEVFLAG=true
 	make start
 
 compile_golangimage_ui:
