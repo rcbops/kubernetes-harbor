@@ -32,14 +32,26 @@ There are a few things you need to do to get a local dev env on Mac OSX going.
 
 ## Run Harbor
 
-This is cribbed from the [compile guide](docs/compile_guide.md). This deploys all Harbor components using your local Docker/Docker Compose.
+This is cribbed from the [compile guide](docs/compile_guide.md). This deploys all Harbor components using your local Docker/Docker Compose. A few changes have been made to [harbor.cfg](make/harbor.cfg) to make this work out of the box.
 
 ```bash
 make install GOBUILDIMAGE=golang:1.7.3 COMPILETAG=compile_golangimage CLARITYIMAGE=vmware/harbor-clarity-ui-builder:1.2.7
 open http://registry.127.0.0.1.nip.io
 ```
 
-## Modify the Rackspace Managed Kubernetes Auth code
+## Run and Configure Kubernetes Auth
+
+1. Fork and clone [kubernetes-auth](https://github.com/rcbops/kubernetes-auth).
+
+1. Run it with the dummy backend in the same network as Harbor
+
+    ```bash
+    make run NETWORK_NAME_BASE=make_harbor
+    ```
+
+1. Work through the [kubernetes-auth example](https://github.com/rcbops/kubernetes-auth#example) to create a user.
+
+## Modify the Rackspace Managed Kubernetes Auth code in Harbor
 
 The auth code currently lives in the UI component. Additional targets were added to the [Makefile](Makefile) to make redeployment of the UI easy.
 
@@ -54,7 +66,7 @@ make redeploy_ui GOBUILDIMAGE=golang:1.7.3 COMPILETAG=compile_golangimage
 Check your code changes.
 
 ```bash
-docker exec harbor-log cat /var/log/docker/$(date +%Y-%m-%d)/ui.log
+docker exec -it harbor-log tail -f /var/log/docker/$(date +%Y-%m-%d)/ui.log
 ```
 
 ## Release a new image
