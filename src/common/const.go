@@ -48,7 +48,6 @@ const (
 	LDAPTimeout                = "ldap_timeout"
 	TokenServiceURL            = "token_service_url"
 	RegistryURL                = "registry_url"
-	RackspaceMK8SAuthURL       = "rackspace_mk8s_auth_url"
 	EmailHost                  = "email_host"
 	EmailPort                  = "email_port"
 	EmailUsername              = "email_username"

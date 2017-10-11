@@ -17,7 +17,6 @@ MYSQL_USR=root
 MYSQL_PWD=$db_password
 MYSQL_DATABASE=registry
 REGISTRY_URL=http://registry:5000
-RACKSPACE_MK8S_AUTH_URL=$rackspace_mk8s_auth_url
 TOKEN_SERVICE_URL=http://ui/service/token
 EMAIL_HOST=$email_host
 EMAIL_PORT=$email_port

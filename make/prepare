@@ -19,7 +19,7 @@ if sys.version_info[:3][0] == 3:
     import configparser as ConfigParser
     import io as StringIO
 
-def validate(conf, args):
+def validate(conf, args): 
     protocol = rcp.get("configuration", "ui_url_protocol")
     if protocol != "https" and args.notary_mode:
         raise Exception("Error: the protocol must be https when Harbor is deployed with Notary")
@@ -40,7 +40,7 @@ def validate(conf, args):
         raise Exception("Error invalid value for project_creation_restriction: %s" % project_creation)
 
 def get_secret_key(path):
-    secret_key = _get_secret(path, "secretkey")
+    secret_key = _get_secret(path, "secretkey") 
     if len(secret_key) != 16:
         raise Exception("secret key's length has to be 16 chars, current length: %d" % len(secret_key))
     return secret_key
@@ -58,7 +58,7 @@ def _get_secret(folder, filename, length=16):
         return key
     if not os.path.isdir(folder):
         os.makedirs(folder, mode=0600)
-    key = ''.join(random.choice(string.ascii_letters+string.digits) for i in range(length))
+    key = ''.join(random.choice(string.ascii_letters+string.digits) for i in range(length))  
     with open(key_file, 'w') as f:
         f.write(key)
         print("Generated and saved secret to file: %s" % key_file)
@@ -110,7 +110,6 @@ rcp.readfp(conf)
 validate(rcp, args)
 
 hostname = rcp.get("configuration", "hostname")
-rackspace_mk8s_auth_url = rcp.get("configuration", "rackspace_mk8s_auth_url")
 protocol = rcp.get("configuration", "ui_url_protocol")
 ui_url = protocol + "://" + hostname
 email_identity = rcp.get("configuration", "email_identity")
@@ -158,8 +157,8 @@ pg_password = rcp.get("configuration", "clair_db_password")
 secret_key = get_secret_key(secretkey_path)
 ########
 
-ui_secret = ''.join(random.choice(string.ascii_letters+string.digits) for i in range(16))
-jobservice_secret = ''.join(random.choice(string.ascii_letters+string.digits) for i in range(16))
+ui_secret = ''.join(random.choice(string.ascii_letters+string.digits) for i in range(16))  
+jobservice_secret = ''.join(random.choice(string.ascii_letters+string.digits) for i in range(16))  
 
 adminserver_config_dir = os.path.join(config_dir,"adminserver")
 if not os.path.exists(adminserver_config_dir):
@@ -180,7 +179,7 @@ registry_conf = os.path.join(config_dir, "registry", "config.yml")
 db_conf_env = os.path.join(config_dir, "db", "env")
 job_conf_env = os.path.join(config_dir, "jobservice", "env")
 nginx_conf = os.path.join(config_dir, "nginx", "nginx.conf")
-cert_dir = os.path.join(config_dir, "nginx", "cert")
+cert_dir = os.path.join(config_dir, "nginx", "cert") 
 
 if protocol == "https":
     target_cert_path = os.path.join(cert_dir, os.path.basename(cert_path))
@@ -196,15 +195,14 @@ if protocol == "https":
 else:
     render(os.path.join(templates_dir, "nginx", "nginx.http.conf"),
         nginx_conf)
-
+		
 render(os.path.join(templates_dir, "adminserver", "env"),
         adminserver_conf_env,
         ui_url=ui_url,
         auth_mode=auth_mode,
-        rackspace_mk8s_auth_url=rackspace_mk8s_auth_url,
         self_registration=self_registration,
         ldap_url=ldap_url,
-        ldap_searchdn =ldap_searchdn,
+        ldap_searchdn =ldap_searchdn, 
         ldap_search_pwd =ldap_search_pwd,
         ldap_basedn=ldap_basedn,
         ldap_filter=ldap_filter,
@@ -232,13 +230,13 @@ render(os.path.join(templates_dir, "adminserver", "env"),
         pg_password=pg_password
 	)
 
-render(os.path.join(templates_dir, "ui", "env"),
-        ui_conf_env,
+render(os.path.join(templates_dir, "ui", "env"), 
+        ui_conf_env, 
         ui_secret=ui_secret,
         jobservice_secret=jobservice_secret,
         )
 
-render(os.path.join(templates_dir, "registry",
+render(os.path.join(templates_dir, "registry", 
 		"config.yml"),
         registry_conf,
         ui_url=ui_url)
@@ -303,7 +301,7 @@ def openssl_installed():
         print("Cannot find openssl installed in this computer\nUse default SSL certificate file")
         return False
     return True
-
+        
 
 if customize_crt == 'on' and openssl_installed():
     shell_stat = subprocess.check_call(["which", "openssl"], stdout=FNULL, stderr=subprocess.STDOUT)
@@ -318,14 +316,14 @@ else:
     shutil.copyfile(os.path.join(templates_dir, "ui", "private_key.pem"), os.path.join(ui_config_dir, "private_key.pem"))
     print("Copied configuration file: %s" % registry_config_dir + "root.crt")
     shutil.copyfile(os.path.join(templates_dir, "registry", "root.crt"), os.path.join(registry_config_dir, "root.crt"))
-
+	
 if args.notary_mode:
     notary_config_dir = prep_conf_dir(config_dir, "notary")
-    notary_temp_dir = os.path.join(templates_dir, "notary")
+    notary_temp_dir = os.path.join(templates_dir, "notary") 
     print("Copying sql file for notary DB")
     if os.path.exists(os.path.join(notary_config_dir, "mysql-initdb.d")):
         shutil.rmtree(os.path.join(notary_config_dir, "mysql-initdb.d"))
-    shutil.copytree(os.path.join(notary_temp_dir, "mysql-initdb.d"), os.path.join(notary_config_dir, "mysql-initdb.d"))
+    shutil.copytree(os.path.join(notary_temp_dir, "mysql-initdb.d"), os.path.join(notary_config_dir, "mysql-initdb.d")) 
     if customize_crt == 'on' and openssl_installed():
         try:
             temp_cert_dir = os.path.join(base_dir, "cert_tmp")
@@ -366,8 +364,8 @@ if args.notary_mode:
 
     print("Copying nginx configuration file for notary")
     shutil.copy2(os.path.join(templates_dir, "nginx", "notary.upstream.conf"), nginx_conf_d)
-    render(os.path.join(templates_dir, "nginx", "notary.server.conf"),
-            os.path.join(nginx_conf_d, "notary.server.conf"),
+    render(os.path.join(templates_dir, "nginx", "notary.server.conf"), 
+            os.path.join(nginx_conf_d, "notary.server.conf"), 
             ssl_cert = os.path.join("/etc/nginx/cert", os.path.basename(target_cert_path)),
             ssl_cert_key = os.path.join("/etc/nginx/cert", os.path.basename(target_cert_key_path)))
 
@@ -381,7 +379,7 @@ if args.clair_mode:
         print("Copying offline data file for clair DB")
         shutil.rmtree(os.path.join(clair_config_dir, "postgresql-init.d"))
     shutil.copytree(os.path.join(clair_temp_dir, "postgresql-init.d"), os.path.join(clair_config_dir, "postgresql-init.d"))
-    postgres_env = os.path.join(clair_config_dir, "postgres_env")
+    postgres_env = os.path.join(clair_config_dir, "postgres_env") 
     render(os.path.join(clair_temp_dir, "postgres_env"), postgres_env, password = pg_password)
     clair_conf = os.path.join(clair_config_dir, "config.yaml")
     render(os.path.join(clair_temp_dir, "config.yaml"), clair_conf, password = pg_password)

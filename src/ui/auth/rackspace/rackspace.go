@@ -21,12 +21,10 @@ import (
 	"net/http"
 	"strings"
 
-	"github.com/vmware/harbor/src/common"
 	"github.com/vmware/harbor/src/common/dao"
 	"github.com/vmware/harbor/src/common/models"
 	"github.com/vmware/harbor/src/common/utils/log"
 	"github.com/vmware/harbor/src/ui/auth"
-	"github.com/vmware/harbor/src/ui/config"
 )
 
 // Auth implements Authenticator interface to authenticate against kubernetes-auth
@@ -50,42 +48,26 @@ type AuthResponse struct {
 }
 
 var (
-	authServerURLTokenEndpoint string
+	authServerURL = "http://172.18.0.10:8080"
 )
 
 // Authenticate checks user's credential against the Rackspace Managed Kubernetes Auth (kubernetes-auth)
 // if the check is successful a dummy record will be inserted into DB, such that this user can
 // be associated to other entities in the system.
 func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
+
 	// kubernetes-auth only uses the token (m.Password) for auth. The username (m.Principal) isn't used at all.
 	// In fact, a user could put anything at all into the username field. It must be ignored.
 	// However, we log the username to help track the request because we can't put the token in the logs.
 	log.Debugf("ProvidedUsername=%s Authentication attempt", m.Principal)
 
-	// get the URL of the Rackspace Managed Kubernetes Auth service
-	if authServerURLTokenEndpoint == "" {
-		rackspaceMK8SAuthURL, err := config.RackspaceMK8SAuthURL()
-		if err != nil {
-			log.Errorf("ProvidedUsername=%s Problem getting value for %s Error=%v", m.Principal, common.RackspaceMK8SAuthURL, err)
-			return nil, err
-		}
-		if rackspaceMK8SAuthURL == "" {
-			log.Errorf("ProvidedUsername=%s Config value for %s was empty", m.Principal, common.RackspaceMK8SAuthURL)
-			return nil, fmt.Errorf("Config value for %s was empty", common.RackspaceMK8SAuthURL)
-		}
-
-		authServerURLTokenEndpoint = rackspaceMK8SAuthURL + "/authenticate/token"
-	}
-
 	// build auth request
 	authRequestBody := fmt.Sprintf("{\"spec\": {\"token\": \"%s\"}}", m.Password)
-	req, err := http.NewRequest(http.MethodPost, authServerURLTokenEndpoint, strings.NewReader(authRequestBody))
+	req, err := http.NewRequest(http.MethodPost, authServerURL+"/authenticate/token", strings.NewReader(authRequestBody))
 	if err != nil {
 		log.Errorf("ProvidedUsername=%s Error=%v", m.Principal, err)
 		return nil, err
 	}
-
-	log.Debugf("ProvidedUsername=%s Sending auth request to %s", m.Principal, authServerURLTokenEndpoint)
 
 	// send auth request
 	client := &http.Client{}
@@ -183,5 +165,5 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 
 func init() {
 	auth.Register("rackspace_mk8s_auth", &Auth{})
-	log.Infof("Initializing Rackspace Managed Kubernetes Auth")
+	log.Infof("Initializing Rackspace Managed Kubernetes Auth: authServerURL=%s", authServerURL)
 }
