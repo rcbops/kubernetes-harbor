@@ -240,6 +240,16 @@ func RegistryURL() (string, error) {
 	return cfg[common.RegistryURL].(string), nil
 }
 
+// RackspaceMK8SAuthURL ...
+func RackspaceMK8SAuthURL() string {
+	rackspaceMK8SAuthURL := os.Getenv("RACKSPACE_MK8S_AUTH_URL")
+	if len(rackspaceMK8SAuthURL) == 0 {
+		rackspaceMK8SAuthURL = "http://app:8080"
+	}
+
+	return rackspaceMK8SAuthURL
+}
+
 // InternalJobServiceURL returns jobservice URL for internal communication between Harbor containers
 func InternalJobServiceURL() string {
 	return "http://jobservice"

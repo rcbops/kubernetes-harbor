@@ -25,6 +25,7 @@ import (
 	"github.com/vmware/harbor/src/common/models"
 	"github.com/vmware/harbor/src/common/utils/log"
 	"github.com/vmware/harbor/src/ui/auth"
+	"github.com/vmware/harbor/src/ui/config"
 )
 
 // Auth implements Authenticator interface to authenticate against kubernetes-auth
@@ -48,7 +49,7 @@ type AuthResponse struct {
 }
 
 var (
-	authServerURL = "http://172.18.0.10:8080"
+	rackspaceMK8SAuthURLTokenEndpoint string
 )
 
 // Authenticate checks user's credential against the Rackspace Managed Kubernetes Auth (kubernetes-auth)
@@ -63,11 +64,13 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 
 	// build auth request
 	authRequestBody := fmt.Sprintf("{\"spec\": {\"token\": \"%s\"}}", m.Password)
-	req, err := http.NewRequest(http.MethodPost, authServerURL+"/authenticate/token", strings.NewReader(authRequestBody))
+	req, err := http.NewRequest(http.MethodPost, rackspaceMK8SAuthURLTokenEndpoint, strings.NewReader(authRequestBody))
 	if err != nil {
 		log.Errorf("ProvidedUsername=%s Error=%v", m.Principal, err)
 		return nil, err
 	}
+
+	log.Debugf("ProvidedUsername=%s Sending auth request to %s", m.Principal, rackspaceMK8SAuthURLTokenEndpoint)
 
 	// send auth request
 	client := &http.Client{}
@@ -165,5 +168,7 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 
 func init() {
 	auth.Register("rackspace_mk8s_auth", &Auth{})
-	log.Infof("Initializing Rackspace Managed Kubernetes Auth: authServerURL=%s", authServerURL)
+	rackspaceMK8SAuthURL := config.RackspaceMK8SAuthURL()
+	rackspaceMK8SAuthURLTokenEndpoint = rackspaceMK8SAuthURL + "/authenticate/token"
+	log.Infof("Initializing Rackspace Managed Kubernetes Auth: rackspaceMK8SAuthURL=%s", rackspaceMK8SAuthURL)
 }
