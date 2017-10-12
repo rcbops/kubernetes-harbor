@@ -1,10 +1,10 @@
 # Harbor with Rackspace Managed Kubernetes Auth
 
-This section explains the development environment of Harbor with Rackspace Managed Kubernetes Auth on Mac OSX.
+This section explains how to create the development environment for developing the integration code for Harbor with Rackspace Managed Kubernetes Auth on Mac OSX. This uses your Docker/Docker Compose only because this is a local dev env. Integration with Kubernetes happens in [kubernetes-installer](https://github.com/rcbops/kubernetes-installer).
 
-Read the [Harbor](#harbor) section. Because master is unstable, all development happens in the [rackspace-mk8s-auth branch](https://github.com/rcbops/kubernetes-harbor/tree/rackspace-mk8s-auth) which is always based on a stable release branch. The rackspace-mk8s-auth branch will need to be rebased onto newer Harbor stable branches as Harbor evolves.
+Read the [Harbor](#harbor) section. Because master is unstable, all development happens in the [rackspace-mk8s-auth branch](https://github.com/rcbops/kubernetes-harbor/tree/rackspace-mk8s-auth) which is always based on a stable release branch. The rackspace-mk8s-auth branch will need to be rebased onto newer Harbor stable branches as we upgrade to newer releases.
 
-The only thing in the master branch is this section of the README.
+The only thing in the master branch is this section of the README just so it's easy to find.
 
 ## Dev Env
 
@@ -28,7 +28,17 @@ There are a few things you need to do to get a local dev env on Mac OSX going.
     sudo chown $(whoami):staff /data
     ```
 
-1. Open your Docker preferences and under File Sharing add Docker File `/data` and `/var/log`.
+1. Open your Docker preferences and under File Sharing add dirs `/data` and `/var/log`.
+
+## Run and Configure Kubernetes Auth
+
+1. Fork and clone [kubernetes-auth](https://github.com/rcbops/kubernetes-auth).
+
+1. Run it with the dummy backend in the same network as Harbor.
+
+    ```bash
+    make run NETWORK_NAME_BASE=make_harbor
+    ```
 
 ## Run Harbor
 
@@ -36,42 +46,55 @@ This is cribbed from the [compile guide](docs/compile_guide.md). This deploys al
 
 ```bash
 make install GOBUILDIMAGE=golang:1.7.3 COMPILETAG=compile_golangimage CLARITYIMAGE=vmware/harbor-clarity-ui-builder:1.2.7
-open http://registry.127.0.0.1.nip.io
 ```
 
-## Run and Configure Kubernetes Auth
+## Login to Harbor as admin
 
-1. Fork and clone [kubernetes-auth](https://github.com/rcbops/kubernetes-auth).
+1. Open [registry.127.0.0.1.nip.io](http://registry.127.0.0.1.nip.io).
 
-1. Run it with the dummy backend in the same network as Harbor
+1. You can login using the username/password combo `admin/Harbor12345`. Becaue of the way Harbor is designed, the admin user is the one and only user that will use Harbor's own DB for authentication.
 
-    ```bash
-    make run NETWORK_NAME_BASE=make_harbor
-    ```
+## Login to Harbor as a user
+
+1. To login to Harbor as a user, you first need to create a user/token in the kubernetes-auth dummy backend.
 
 1. Work through the [kubernetes-auth example](https://github.com/rcbops/kubernetes-auth#example) to create a user.
 
+1. Open [registry.127.0.0.1.nip.io](http://registry.127.0.0.1.nip.io).
+
+1. You can now login using the token as the password created in step 2. kubernetes-auth only uses the token for auth. The username isn't used at all. In fact, a user could put anything at all into the username field. It will be ignored.
+
 ## Modify the Rackspace Managed Kubernetes Auth code in Harbor
 
-The auth code currently lives in the UI component. Additional targets were added to the [Makefile](Makefile) to make redeployment of the UI easy.
+1. The auth code lives in the UI component. Additional targets were added to the [Makefile](Makefile) to make redeployment of the UI easy.
 
-```bash
-git checkout -b my-feature-branch rackspace-mk8s-auth
+    ```bash
+    git checkout -b my-feature-branch rackspace-mk8s-auth
 
-# Make your code changes.
+    # Make your code changes.
 
-make redeploy_ui GOBUILDIMAGE=golang:1.7.3 COMPILETAG=compile_golangimage
-```
+    make redeploy_ui GOBUILDIMAGE=golang:1.7.3 COMPILETAG=compile_golangimage
+    ```
 
-Check your code changes.
+1. [Login to Harbor as a user](#login-to-harbor-as-a-user)
 
-```bash
-docker exec -it harbor-log tail -f /var/log/docker/$(date +%Y-%m-%d)/ui.log
-```
+1. Check your code changes by tailing the ui.log.
+
+    ```bash
+    docker exec -it harbor-log tail -f /var/log/docker/$(date +%Y-%m-%d)/ui.log
+    ```
 
 ## Release a new image
 
-TODO
+1. Compile the UI component, build the image, and push it to [quay.io/rackspace/harbor-ui](https://quay.io/repository/rackspace/harbor-ui?tab=tags).
+
+    ```bash
+    make compile_golangimage_ui GOBUILDIMAGE=golang:1.7.3 COMPILETAG=compile_golangimage
+    make -f make/photon/Makefile build_ui DOCKERIMAGENAME_UI=quay.io/rackspace/harbor-ui DEVFLAG=false
+    docker push quay.io/rackspace/harbor-ui:$(git describe --tags)
+    ```
+
+1. Update the `REGISTRY_UI_IMAGE` var in [versions.sh](https://github.com/rcbops/kubernetes-installer/blob/master/hack/lib/versions.sh) of the kubernetes-installer to the result of `echo quay.io/rackspace/harbor-ui:$(git describe --tags)`.
 
 # Harbor
 
