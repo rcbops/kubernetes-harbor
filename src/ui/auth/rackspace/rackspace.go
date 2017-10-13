@@ -15,11 +15,13 @@
 package rackspace
 
 import (
+	"bytes"
 	"encoding/json"
+	"errors"
 	"fmt"
 	"io/ioutil"
+	"math/rand"
 	"net/http"
-	"strings"
 
 	"github.com/vmware/harbor/src/common/dao"
 	"github.com/vmware/harbor/src/common/models"
@@ -28,10 +30,17 @@ import (
 	"github.com/vmware/harbor/src/ui/config"
 )
 
-// Auth implements Authenticator interface to authenticate against kubernetes-auth
+// Auth implements Authenticator interface to authenticate against Rackspace Managed Kubernetes Auth (kubernetes-auth)
 type Auth struct{}
 
-// AuthResponse is the response from Rackspace Managed Kubernetes Auth (kubernetes-auth)
+// AuthRequest is the request body format for kubernetes-auth
+type AuthRequest struct {
+	Spec struct {
+		Token string `json:"token"`
+	} `json:"spec"`
+}
+
+// AuthResponse is the response from kubernetes-auth
 // If the user is authenticated, the User struct is filled. Otherwise, the Error string is filled
 type AuthResponse struct {
 	APIVersion string `json:"apiVersion"`
@@ -59,24 +68,25 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 
 	// kubernetes-auth only uses the token (m.Password) for auth. The username (m.Principal) isn't used at all.
 	// In fact, a user could put anything at all into the username field. It must be ignored.
-	// However, we log the username to help track the request because we can't put the token in the logs.
+	// However, we log the username to help track the request because we can't put the token (m.Password) in the logs.
 	log.Debugf("ProvidedUsername=%s Authentication attempt", m.Principal)
 
 	// build auth request
-	authRequestBody := fmt.Sprintf("{\"spec\": {\"token\": \"%s\"}}", m.Password)
-	req, err := http.NewRequest(http.MethodPost, rackspaceMK8SAuthURLTokenEndpoint, strings.NewReader(authRequestBody))
+	authRequest := &AuthRequest{}
+	authRequest.Spec.Token = m.Password
+
+	authRequestBody, err := json.Marshal(authRequest)
 	if err != nil {
-		log.Errorf("ProvidedUsername=%s Error=%v", m.Principal, err)
+		log.Errorf("ProvidedUsername=%s Error marshalling auth request: %v", m.Principal, err)
 		return nil, err
 	}
 
-	log.Debugf("ProvidedUsername=%s Sending auth request to %s", m.Principal, rackspaceMK8SAuthURLTokenEndpoint)
+	log.Debugf("ProvidedUsername=%s Sending auth request: %s", m.Principal, rackspaceMK8SAuthURLTokenEndpoint)
 
 	// send auth request
-	client := &http.Client{}
-	resp, err := client.Do(req)
+	resp, err := http.Post(rackspaceMK8SAuthURLTokenEndpoint, "application/json", bytes.NewReader(authRequestBody))
 	if err != nil {
-		log.Errorf("ProvidedUsername=%s Error=%v", m.Principal, err)
+		log.Errorf("ProvidedUsername=%s Error sending auth request: %v", m.Principal, err)
 		return nil, err
 	}
 	defer resp.Body.Close()
@@ -84,85 +94,70 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 	// read auth response body
 	authRespBody, err := ioutil.ReadAll(resp.Body)
 	if err != nil {
-		log.Errorf("ProvidedUsername=%s Error=%v", m.Principal, err)
+		log.Errorf("ProvidedUsername=%s Error reading auth response: %v", m.Principal, err)
 		return nil, err
 	}
 
-	// check for auth server error
-	if resp.StatusCode >= http.StatusInternalServerError {
-		log.Errorf("ProvidedUsername=%s Error=%s", m.Principal, authRespBody)
-		return nil, fmt.Errorf("%d %s", resp.StatusCode, authRespBody)
+	// check for any status other than OK
+	if resp.StatusCode != http.StatusOK {
+		errMsg := fmt.Sprintf("HTTPStatusCode=%d AuthResponseBody=%s", resp.StatusCode, authRespBody)
+		log.Errorf("ProvidedUsername=%s Error non-200-OK status code on auth response: %s", m.Principal, errMsg)
+		return nil, errors.New(errMsg)
 	}
 
 	// read auth response body as json
 	authResp := AuthResponse{}
 	err = json.Unmarshal([]byte(authRespBody), &authResp)
 	if err != nil {
-		log.Errorf("ProvidedUsername=%s Error=%v", m.Principal, err)
+		log.Errorf("ProvidedUsername=%s Error unmarshalling auth response: %v", m.Principal, err)
 		return nil, err
 	}
 
-	log.Debugf("ProvidedUsername=%s Authenticated=%t", m.Principal, authResp.Status.Authenticated)
+	log.Debugf("ProvidedUsername=%s UID=%s BackendUsername=%s Authenticated=%t Getting user from database", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username, authResp.Status.Authenticated)
 
-	// check for any status other than OK
-	if resp.StatusCode != http.StatusOK {
-		log.Errorf("ProvidedUsername=%s Error=%s", m.Principal, authResp.Status.Error)
-		return nil, fmt.Errorf("%d %s", resp.StatusCode, authResp.Status.Error)
+	user, err := dao.GetUser(models.User{Realname: authResp.Status.User.UID})
+	if err != nil {
+		log.Errorf("ProvidedUsername=%s Error getting user from database: %v", m.Principal, err)
+		return nil, err
 	}
-
-	log.Debugf("ProvidedUsername=%s UID=%s BackendUsername=%s", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username)
 
 	// check if the user already exists in the Harbor DB. if the user doesn't exist, create it.
-	user := models.User{}
-	// set the Harbor Realname to the kubernetes-auth backend's UID because the UID is a static ID
-	// whereas the kubernetes-auth backend's Username can change (so put it in the Harbor Username field for convenience)
-	user.Realname = authResp.Status.User.UID
-
-	exist, err := dao.UserExists(user, "realname")
-	if err != nil {
-		log.Errorf("ProvidedUsername=%s UID=%s BackendUsername=%s Error=%v", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username, err)
-		return nil, err
-	}
-
-	if exist {
+	if user != nil {
 		log.Debugf("ProvidedUsername=%s UID=%s BackendUsername=%s exists in Harbor DB", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username)
 
-		existingUser, err := dao.GetUser(user)
-		if err != nil {
-			log.Errorf("ProvidedUsername=%s UID=%s BackendUsername=%s Error=%v", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username, err)
-			return nil, err
-		}
-
 		// if the username changed in kubernetes-auth backend, update it in the Harbor DB
-		if existingUser.Username != authResp.Status.User.Username {
+		if user.Username != authResp.Status.User.Username {
 			log.Debugf("ProvidedUsername=%s UID=%s BackendUsername=%s backend username changed so updating Harbor DB", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username)
 
-			existingUser.Username = authResp.Status.User.Username
+			user.Username = authResp.Status.User.Username
 
-			err = dao.ChangeUserProfile(*existingUser)
+			err = dao.ChangeUserProfile(*user)
 			if err != nil {
-				log.Errorf("ProvidedUsername=%s UID=%s BackendUsername=%s Error=%v", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username, err)
+				log.Errorf("ProvidedUsername=%s UID=%s BackendUsername=%s Error updating user profile: %v", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username, err)
 				return nil, err
 			}
 		}
-
-		user = *existingUser
 	} else {
 		log.Debugf("ProvidedUsername=%s UID=%s BackendUsername=%s does not exist in Harbor DB so creating new user", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username)
 
+		// set the Harbor Realname to the kubernetes-auth backend's UID because the UID is a static ID
+		// whereas the kubernetes-auth backend's Username can change (so put it in the Harbor Username field for convenience)
+		user = &models.User{}
+		user.Realname = authResp.Status.User.UID
 		user.Username = authResp.Status.User.Username
-		user.Password = "ThisPassw0rdIsNotused"
-		user.Comment = "Rackspace MK8S Auth DON'T EDIT"
+		user.Password = randString()
+		user.Comment = "Do not edit this user"
 
-		userID, err := dao.Register(user)
+		userID, err := dao.Register(*user)
 		if err != nil {
-			log.Errorf("ProvidedUsername=%s UID=%s BackendUsername=%s Error=%v", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username, err)
+			log.Errorf("ProvidedUsername=%s UID=%s BackendUsername=%s Error creating new user: %v", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username, err)
 			return nil, err
 		}
+
 		user.UserID = int(userID)
 	}
 
-	return &user, nil
+	return user, nil
 }
 
 func init() {
@@ -170,4 +165,13 @@ func init() {
 	rackspaceMK8SAuthURL := config.RackspaceMK8SAuthURL()
 	rackspaceMK8SAuthURLTokenEndpoint = rackspaceMK8SAuthURL + "/authenticate/token"
 	log.Infof("Initializing Rackspace Managed Kubernetes Auth: rackspaceMK8SAuthURL=%s", rackspaceMK8SAuthURL)
+}
+
+func randString() string {
+	letterBytes := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
+	b := make([]byte, 32)
+	for i := range b {
+		b[i] = letterBytes[rand.Intn(len(letterBytes))]
+	}
+	return string(b)
 }

@@ -50,6 +50,7 @@ func Register(user models.User) (int64, error) {
 // UserExists returns whether a user exists according username or Email.
 func UserExists(user models.User, target string) (bool, error) {
 
+	// user.Realname contains the UID from the kubernetes-auth backend
 	if user.Username == "" && user.Email == "" && user.Realname == "" {
 		return false, errors.New("user name, email, and realname are blank")
 	}
