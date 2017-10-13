@@ -121,13 +121,13 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 		return nil, err
 	}
 
-	// check if the user already exists in the Harbor DB. if the user doesn't exist, create it.
+	// check if the user already exists in the database. if the user doesn't exist, create it.
 	if user != nil {
-		log.Debugf("ProvidedUsername=%s UID=%s BackendUsername=%s exists in Harbor DB", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username)
+		log.Debugf("ProvidedUsername=%s UID=%s BackendUsername=%s exists in database", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username)
 
-		// if the username changed in kubernetes-auth backend, update it in the Harbor DB
+		// if the username changed in kubernetes-auth backend, update it in the database
 		if user.Username != authResp.Status.User.Username {
-			log.Debugf("ProvidedUsername=%s UID=%s BackendUsername=%s backend username changed so updating Harbor DB", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username)
+			log.Debugf("ProvidedUsername=%s UID=%s BackendUsername=%s backend username changed so updating database", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username)
 
 			user.Username = authResp.Status.User.Username
 
@@ -138,7 +138,7 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 			}
 		}
 	} else {
-		log.Debugf("ProvidedUsername=%s UID=%s BackendUsername=%s does not exist in Harbor DB so creating new user", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username)
+		log.Debugf("ProvidedUsername=%s UID=%s BackendUsername=%s does not exist in database so creating new user", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username)
 
 		// set the Harbor Realname to the kubernetes-auth backend's UID because the UID is a static ID
 		// whereas the kubernetes-auth backend's Username can change (so put it in the Harbor Username field for convenience)
