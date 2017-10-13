@@ -135,12 +135,11 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 
 		// if the username changed in kubernetes-auth backend, update it in the Harbor DB
 		if existingUser.Username != authResp.Status.User.Username {
-			log.Debugf("ProvidedUsername=%s UID=%s BackendUsername=%s backend username change so updating Harbor DB", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username)
+			log.Debugf("ProvidedUsername=%s UID=%s BackendUsername=%s backend username changed so updating Harbor DB", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username)
 
-			user.Username = authResp.Status.User.Username
 			existingUser.Username = authResp.Status.User.Username
 
-			err = dao.ChangeUserProfile(user)
+			err = dao.ChangeUserProfile(*existingUser)
 			if err != nil {
 				log.Errorf("ProvidedUsername=%s UID=%s BackendUsername=%s Error=%v", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username, err)
 				return nil, err
