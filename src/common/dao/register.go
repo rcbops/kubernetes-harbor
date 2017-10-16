@@ -50,8 +50,9 @@ func Register(user models.User) (int64, error) {
 // UserExists returns whether a user exists according username or Email.
 func UserExists(user models.User, target string) (bool, error) {
 
-	if user.Username == "" && user.Email == "" {
-		return false, errors.New("user name and email are blank")
+	// user.Realname contains the UID from the kubernetes-auth backend
+	if user.Username == "" && user.Email == "" && user.Realname == "" {
+		return false, errors.New("user name, email, and realname are blank")
 	}
 
 	o := GetOrmer()
@@ -66,6 +67,9 @@ func UserExists(user models.User, target string) (bool, error) {
 	case "email":
 		sql += ` and email = ? `
 		queryParam = append(queryParam, user.Email)
+	case "realname":
+		sql += ` and realname = ? `
+		queryParam = append(queryParam, user.Realname)
 	}
 
 	var u []models.User

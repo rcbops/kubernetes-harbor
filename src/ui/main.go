@@ -35,6 +35,7 @@ import (
 	_ "github.com/vmware/harbor/src/ui/auth/db"
 	_ "github.com/vmware/harbor/src/ui/auth/ldap"
 	_ "github.com/vmware/harbor/src/ui/auth/uaa"
+	_ "github.com/vmware/harbor/src/ui/auth/rackspace"
 	"github.com/vmware/harbor/src/ui/config"
 	"github.com/vmware/harbor/src/ui/filter"
 	"github.com/vmware/harbor/src/ui/proxy"

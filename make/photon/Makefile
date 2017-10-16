@@ -1,5 +1,5 @@
 # Makefile for a harbor project
-#	
+#
 # Targets:
 #
 # build: 	build harbor photon images
@@ -20,7 +20,7 @@ DOCKERBUILD=$(DOCKERCMD) build
 DOCKERRMIMAGE=$(DOCKERCMD) rmi
 DOCKERIMASES=$(DOCKERCMD) images
 
-# binary 
+# binary
 ADMINSERVERSOURCECODE=$(SRCPATH)/adminserver
 ADMINSERVERBINARYPATH=$(MAKEDEVPATH)/adminserver
 ADMINSERVERBINARYNAME=harbor_adminserver
@@ -88,27 +88,27 @@ _build_db: _build_mariadb
 	@echo "Done."
 	@$(SEDCMD) -i 's/$(MARIADBVERSION)/__version__/g' $(DOCKERFILEPATH_DB)/$(DOCKERFILENAME_DB)
 
-_build_adminiserver:		
+_build_adminiserver:
 	@echo "building adminserver container for photon..."
 	$(DOCKERBUILD) -f $(DOCKERFILEPATH_ADMINSERVER)/$(DOCKERFILENAME_ADMINSERVER) -t $(DOCKERIMAGENAME_ADMINSERVER):$(VERSIONTAG) .
 	@echo "Done."
 
-_build_ui:	
+_build_ui:
 	@echo "building ui container for photon..."
 	$(DOCKERBUILD) -f $(DOCKERFILEPATH_UI)/$(DOCKERFILENAME_UI) -t $(DOCKERIMAGENAME_UI):$(VERSIONTAG) .
 	@echo "Done."
-	
-_build_jobservice:		
+
+_build_jobservice:
 	@echo "building jobservice container for photon..."
 	$(DOCKERBUILD) -f $(DOCKERFILEPATH_JOBSERVICE)/$(DOCKERFILENAME_JOBSERVICE) -t $(DOCKERIMAGENAME_JOBSERVICE):$(VERSIONTAG) .
 	@echo "Done."
 
-_build_log:	
+_build_log:
 	@echo "building log container for photon..."
 	$(DOCKERBUILD) -f $(DOCKERFILEPATH_LOG)/$(DOCKERFILENAME_LOG) -t $(DOCKERIMAGENAME_LOG):$(VERSIONTAG) $(DOCKERFILEPATH_LOG)
 	@echo "Done."
 
-_build_postgresql:		
+_build_postgresql:
 	@echo "building postgresql container for photon..."
 	@cd $(DOCKERFILEPATH_POSTGRESQL) && $(DOCKERBUILD) -f $(DOCKERFILEPATH_POSTGRESQL)/$(DOCKERFILENAME_POSTGRESQL) -t $(DOCKERIMAGENAME_POSTGRESQL):$(CLAIRDBVERSION) .
 	@echo "Done."
@@ -126,7 +126,7 @@ _build_clair:
 		rm -rf $(DOCKERFILEPATH_CLAIR)/binary; \
 		echo "Done." ; \
 	fi
-		
+
 _build_nginx:
 	@echo "building nginx container for photon..."
 	@$(DOCKERBUILD) -f $(DOCKERFILEPATH_NGINX)/$(DOCKERFILENAME_NGINX) -t $(DOCKERIMAGENAME_NGINX):$(NGINXVERSION) .
@@ -149,7 +149,7 @@ _build_notary:
 		rm -rf $(DOCKERFILEPATH_NOTARY)/binary; \
 		echo "Done."; \
 	fi
-		
+
 _build_registry:
 	@if [ "$(BUILDBIN)" != "true" ] ; then \
 		rm -rf $(DOCKERFILEPATH_REG)/binary && mkdir -p $(DOCKERFILEPATH_REG)/binary && \
@@ -161,8 +161,8 @@ _build_registry:
 	@cd $(DOCKERFILEPATH_REG) && chmod 655 $(DOCKERFILEPATH_REG)/binary/registry && $(DOCKERBUILD) -f $(DOCKERFILEPATH_REG)/$(DOCKERFILENAME_REG) -t $(DOCKERIMAGENAME_REG):$(REGISTRYVERSION)-$(VERSIONTAG) .
 	@rm -rf $(DOCKERFILEPATH_REG)/binary
 	@echo "Done."
-			
-_build_mariadb:	
+
+_build_mariadb:
 	@echo "building mariadb container for photon..."
 	@cd $(DOCKERFILEPATH_MARIADB) && $(DOCKERBUILD) -f $(DOCKERFILEPATH_MARIADB)/$(DOCKERFILENAME_MARIADB) -t $(DOCKERIMAGENAME_MARIADB):$(MARIADBVERSION) .
 	@echo "Done."
@@ -179,7 +179,6 @@ cleanimage:
 	- $(DOCKERRMIMAGE) -f $(DOCKERIMAGENAME_UI):$(VERSIONTAG)
 	- $(DOCKERRMIMAGE) -f $(DOCKERIMAGENAME_JOBSERVICE):$(VERSIONTAG)
 	- $(DOCKERRMIMAGE) -f $(DOCKERIMAGENAME_LOG):$(VERSIONTAG)
-	
+
 .PHONY: clean
 clean: cleanimage
-
