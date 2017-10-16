@@ -19,6 +19,7 @@ import (
 	"encoding/json"
 	"fmt"
 	"net/http"
+	"net/url"
 	"os"
 	"strings"
 
@@ -238,6 +239,23 @@ func RegistryURL() (string, error) {
 		return "", err
 	}
 	return cfg[common.RegistryURL].(string), nil
+}
+
+// RackspaceMK8SAuthURL ...
+func RackspaceMK8SAuthURL() string {
+	rackspaceMK8SAuthURLEnvVar := "RACKSPACE_MK8S_AUTH_URL"
+
+	rackspaceMK8SAuthURL := os.Getenv(rackspaceMK8SAuthURLEnvVar)
+
+	if len(rackspaceMK8SAuthURL) == 0 {
+		rackspaceMK8SAuthURL = "http://app:8080"
+	}
+
+	if _, err := url.ParseRequestURI(rackspaceMK8SAuthURL); err != nil {
+		log.Fatalf("The env var %s is not a valid url %s", rackspaceMK8SAuthURLEnvVar, rackspaceMK8SAuthURL)
+	}
+
+	return rackspaceMK8SAuthURL
 }
 
 // InternalJobServiceURL returns jobservice URL for internal communication between Harbor containers

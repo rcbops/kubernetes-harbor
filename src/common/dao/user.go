@@ -52,6 +52,11 @@ func GetUser(query models.User) (*models.User, error) {
 		queryParam = append(queryParam, query.ResetUUID)
 	}
 
+	if query.Realname != "" {
+		sql += ` and realname = ? `
+		queryParam = append(queryParam, query.Realname)
+	}
+
 	var u []models.User
 	n, err := o.Raw(sql, queryParam).QueryRows(&u)
 
@@ -246,7 +251,7 @@ func DeleteUser(userID int) error {
 	name := fmt.Sprintf("%s#%d", user.Username, user.UserID)
 	email := fmt.Sprintf("%s#%d", user.Email, user.UserID)
 
-	_, err = o.Raw(`update user 
+	_, err = o.Raw(`update user
 		set deleted = 1, username = ?, email = ?
 		where user_id = ?`, name, email, userID).Exec()
 	return err
@@ -255,7 +260,7 @@ func DeleteUser(userID int) error {
 // ChangeUserProfile ...
 func ChangeUserProfile(user models.User) error {
 	o := GetOrmer()
-	if _, err := o.Update(&user, "Email", "Realname", "Comment"); err != nil {
+	if _, err := o.Update(&user, "Username", "Email", "Realname", "Comment"); err != nil {
 		log.Errorf("update user failed, error: %v", err)
 		return err
 	}
