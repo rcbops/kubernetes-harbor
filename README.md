@@ -2,7 +2,7 @@
 
 This section explains how to create the development environment for developing the integration code for Harbor with Rackspace Managed Kubernetes Auth on Mac OSX. This uses your Docker/Docker Compose only because this is a local dev env. Integration with Kubernetes happens in [kubernetes-installer](https://github.com/rcbops/kubernetes-installer).
 
-Read the [Harbor](#harbor) section. Because master is unstable, all development happens in the [rackspace-mk8s-auth branch](https://github.com/rcbops/kubernetes-harbor/tree/rackspace-mk8s-auth) which is always based on a stable release branch. The rackspace-mk8s-auth branch will need to be rebased onto newer Harbor stable branches as we upgrade to newer releases.
+Read the [Harbor](#harbor) section. Because master is unstable, all development happens in the [rackspace-mk8s-auth branch](https://github.com/rcbops/kubernetes-harbor/tree/rackspace-mk8s-auth) which is always based on an upstream stable release branch. The rackspace-mk8s-auth branch will need to be rebased onto newer Harbor stable branches as we upgrade to newer releases. This is akin to the "vendor branch" pattern in Git.
 
 The only thing in the master branch is this section of the README just so it's easy to find.
 
@@ -10,15 +10,22 @@ The only thing in the master branch is this section of the README just so it's e
 
 There are a few things you need to do to get a local dev env on Mac OSX going.
 
-1. Fork the repo.
+1. [Fork this repo](https://help.github.com/articles/fork-a-repo/) into your personal account.
 
-1. Even though the repo is git@github.com:rcbops/kubernetes-harbor.git it's easier to clone it to a directory structure where Go lang expects everything to be.
+1. Because go expects source directories to exist in a set location, you will need to clone harbor to your `$GOPATH`, like so:
 
     ```bash
-    mkdir $GOPATH/src/github.com/vmware
-    git clone git@github.com:my-github-username/kubernetes-harbor.git $GOPATH/src/github.com/vmware/harbor
+    mkdir -p $GOPATH/src/github.com/vmware
+    git clone git@github.com:<my-github-username>/kubernetes-harbor.git $GOPATH/src/github.com/vmware/harbor
     cd $GOPATH/src/github.com/vmware/harbor
-    git remote add upstream git@github.com:rcbops/kubernetes-harbor.git
+
+    # add remotes for both the upstream repo and the fork repo
+    git remote add upstream git@github.com:vmware/harbor.git
+    git remote add fork git@github.com:rcbops/kubernetes-harbor.git
+
+    # fetch the rackspace-mk8s-auth branch and create a local tracking branch for it
+    git fetch fork rackspace-mk8s-auth
+    git checkout --track fork/rackspace-mk8s-auth
     ```
 
 1. Create a data dir.
@@ -28,11 +35,13 @@ There are a few things you need to do to get a local dev env on Mac OSX going.
     sudo chown $(whoami):staff /data
     ```
 
+    The `/data` dir persists all of the data that the Harbor apps use.
+
 1. Open your Docker preferences and under File Sharing add dirs `/data` and `/var/log`.
 
 ## Run and Configure Kubernetes Auth
 
-1. Fork and clone [kubernetes-auth](https://github.com/rcbops/kubernetes-auth).
+1. [Fork and clone the repo](https://help.github.com/articles/fork-a-repo/) [kubernetes-auth](https://github.com/rcbops/kubernetes-auth) into your personal account and clone it.
 
 1. Run it with the dummy backend in the same network as Harbor.
 
@@ -40,17 +49,26 @@ There are a few things you need to do to get a local dev env on Mac OSX going.
     make run NETWORK_NAME_BASE=make_harbor
     ```
 
+This command creates the following containers:
+
+* a MySQL database for storing user info
+* an auth service container for handling auth requests through an HTTP API
+
+The auth service is set up using a dummy backend, meaning that it will not perform HTTP connections to a real backend like OpenStack Keystone, which is useful for testing. The result of this is that HTTP calls will always pass.
+
 ## Run Harbor
 
-This is cribbed from the [compile guide](docs/compile_guide.md). This deploys all Harbor components using your local Docker/Docker Compose. A few changes have been made to [harbor.cfg](make/harbor.cfg) to make this work out of the box.
+This section is cribbed from the [compile guide](docs/compile_guide.md). This deploys all Harbor components using your local Docker/Docker Compose. A few changes have been made to [harbor.cfg](make/harbor.cfg) to make this work out of the box.
 
 ```bash
 make install GOBUILDIMAGE=golang:1.7.3 COMPILETAG=compile_golangimage CLARITYIMAGE=vmware/harbor-clarity-ui-builder:1.2.7
 ```
 
+This command creates all of the Harbor related containers. You can find out more about these containers by reading about the [Image Registry](https://github.com/rcbops/kubernetes-installer/blob/master/docs/support/TROUBLESHOOTING.md#image-registry) architecture.
+
 ## Login to Harbor as admin
 
-1. Open [registry.127.0.0.1.nip.io](http://registry.127.0.0.1.nip.io).
+1. Open [registry.127.0.0.1.nip.io](http://registry.127.0.0.1.nip.io) in your browser.
 
 1. You can login using the username/password combo `admin/Harbor12345`. Becaue of the way Harbor is designed, the admin user is the one and only user that will use Harbor's own DB for authentication.
 
@@ -58,15 +76,15 @@ make install GOBUILDIMAGE=golang:1.7.3 COMPILETAG=compile_golangimage CLARITYIMA
 
 1. To login to Harbor as a user, you first need to create a user/token in the kubernetes-auth dummy backend.
 
-1. Work through the [kubernetes-auth example](https://github.com/rcbops/kubernetes-auth#example) to create a user.
+1. Work through the [kubernetes-auth example](https://github.com/rcbops/kubernetes-auth#example) to create a user and token.
 
-1. Open [registry.127.0.0.1.nip.io](http://registry.127.0.0.1.nip.io).
+1. Open [registry.127.0.0.1.nip.io](http://registry.127.0.0.1.nip.io) in your browser.
 
-1. You can now login using the token as the password created in step 2. kubernetes-auth only uses the token for auth. The username isn't used at all. In fact, a user could put anything at all into the username field. It will be ignored.
+1. The auth service will have returned a token as created in step 2. This token will be used as your Harbor password. It's important to note that since the Auth service has no concept of a Harbor username, you can choose any value when inputting your Harbor username - it will be ignored. The only identifier is the token returned by the Auth service
 
 ## Modify the Rackspace Managed Kubernetes Auth code in Harbor
 
-1. The auth code lives in the UI component. Additional targets were added to the [Makefile](Makefile) to make redeployment of the UI easy.
+1. The code which integrates Harbor with the Kubernetes Auth service lives in the `ui` component. If you would like to update this and re-deploy, you can use the following commands:
 
     ```bash
     git checkout -b my-feature-branch rackspace-mk8s-auth
@@ -84,9 +102,21 @@ make install GOBUILDIMAGE=golang:1.7.3 COMPILETAG=compile_golangimage CLARITYIMA
     docker exec -it harbor-log tail -f /var/log/docker/$(date +%Y-%m-%d)/ui.log
     ```
 
+1. Push your commit(s) and branch as usual.
+
+    ```bash
+    git commit -am "My feature"
+    git push -u
+    ```
+
+1. When creating the pull request using the GitHub UI, take care to make sure you've selected the correct fork/branch pairs, like so.
+
+    * `base fork:rcbops/kubernetes-harbor` `base: rackspace-mk8s-auth`
+    * `head fork: <my-github-username>/kubernetes-harbor` `compare: my-feature-branch`
+
 ## Release a new image
 
-1. Compile the UI component, build the image, and push it to [quay.io/rackspace/harbor-ui](https://quay.io/repository/rackspace/harbor-ui?tab=tags).
+1. Once a new feature or bugfix has been reviewed and merged, the Docker image needs to be rebuilt and pushed to [quay.io/rackspace/harbor-ui](https://quay.io/repository/rackspace/harbor-ui?tab=tags), like so:
 
     ```bash
     make compile_golangimage_ui GOBUILDIMAGE=golang:1.7.3 COMPILETAG=compile_golangimage
@@ -95,6 +125,20 @@ make install GOBUILDIMAGE=golang:1.7.3 COMPILETAG=compile_golangimage CLARITYIMA
     ```
 
 1. Update the `REGISTRY_UI_IMAGE` var in [versions.sh](https://github.com/rcbops/kubernetes-installer/blob/master/hack/lib/versions.sh) of the kubernetes-installer to the result of `echo quay.io/rackspace/harbor-ui:$(git describe --tags)`.
+
+## Rebase onto a new upstream stable release branch
+
+When Harbor does a new release upstream, we may want to rebase our code onto that new upstream stable release branch. There are bound to be a number of conflicts to resolve when doing the `git merge` step.
+
+⚠️ **The steps below are untested** since we haven't needed to do this kind of upgrade yet. Proceed slowly and with caution. Update these steps as necessary. ⚠️
+
+```bash
+git fetch upstream
+git checkout --track upstream/release-1.3.0
+git checkout -b rackspace-mk8s-auth-release-1.3.0 release-1.3.0
+git merge rackspace-mk8s-auth-release-1.2.0
+git push fork rackspace-mk8s-auth-release-1.2.0
+```
 
 # Harbor
 
