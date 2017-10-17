@@ -2,7 +2,7 @@
 
 This section explains how to create the development environment for developing the integration code for Harbor with Rackspace Managed Kubernetes Auth on Mac OSX. This uses your Docker/Docker Compose only because this is a local dev env. Integration with Kubernetes happens in [kubernetes-installer](https://github.com/rcbops/kubernetes-installer).
 
-Read the [Harbor](#harbor) section. Because master is unstable, all development happens in the [rackspace-mk8s-auth branch](https://github.com/rcbops/kubernetes-harbor/tree/rackspace-mk8s-auth) which is always based on an upstream stable release branch. The rackspace-mk8s-auth branch will need to be rebased onto newer Harbor stable branches as we upgrade to newer releases. This is akin to the "vendor branch" pattern in Git.
+Read the [Harbor](#harbor) section. Because master is unstable, all development happens in a rackspace-mk8s-auth-release-X.X.X branch which is always based on an upstream stable release branch. The rackspace-mk8s-auth-release-X.X.X branch will need to be [rebased onto a new upstream stable release branch](#rebase-onto-a-new-upstream-stable-release-branch) as we upgrade to newer releases. This is akin to the "vendor branch" pattern in Git.
 
 The only thing in the master branch is this section of the README just so it's easy to find.
 
@@ -12,7 +12,7 @@ There are a few things you need to do to get a local dev env on Mac OSX going.
 
 1. [Fork this repo](https://help.github.com/articles/fork-a-repo/) into your personal account.
 
-1. Because go expects source directories to exist in a set location, you will need to clone harbor to your `$GOPATH`, like so:
+1. Because Go expects source directories to exist in a set location, you will need to clone harbor to your `$GOPATH`, like so:
 
     ```bash
     mkdir -p $GOPATH/src/github.com/vmware
@@ -23,9 +23,10 @@ There are a few things you need to do to get a local dev env on Mac OSX going.
     git remote add upstream git@github.com:vmware/harbor.git
     git remote add fork git@github.com:rcbops/kubernetes-harbor.git
 
-    # fetch the rackspace-mk8s-auth branch and create a local tracking branch for it
-    git fetch fork rackspace-mk8s-auth
-    git checkout --track fork/rackspace-mk8s-auth
+    # list the remote branches, fetch the latest rackspace-mk8s-auth-release-X.X.X branch, and create a local tracking branch for it
+    git ls-remote --heads fork
+    git fetch fork rackspace-mk8s-auth-release-X.X.X
+    git checkout --track fork/rackspace-mk8s-auth-release-X.X.X
     ```
 
 1. Create a data dir.
@@ -87,7 +88,7 @@ This command creates all of the Harbor related containers. You can find out more
 1. The code which integrates Harbor with the Kubernetes Auth service lives in the `ui` component. If you would like to update this and re-deploy, you can use the following commands:
 
     ```bash
-    git checkout -b my-feature-branch rackspace-mk8s-auth
+    git checkout -b my-feature-branch rackspace-mk8s-auth-release-X.X.X
 
     # Make your code changes.
 
@@ -111,7 +112,7 @@ This command creates all of the Harbor related containers. You can find out more
 
 1. When creating the pull request using the GitHub UI, take care to make sure you've selected the correct fork/branch pairs, like so.
 
-    * `base fork:rcbops/kubernetes-harbor` `base: rackspace-mk8s-auth`
+    * `base fork:rcbops/kubernetes-harbor` `base: rackspace-mk8s-auth-release-X.X.X`
     * `head fork: <my-github-username>/kubernetes-harbor` `compare: my-feature-branch`
 
 ## Release a new image
