@@ -16,12 +16,15 @@ package rackspace
 
 import (
 	"bytes"
+	"crypto/tls"
+	"crypto/x509"
 	"encoding/json"
 	"errors"
 	"fmt"
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"strings"
 
 	"github.com/vmware/harbor/src/common/dao"
 	"github.com/vmware/harbor/src/common/models"
@@ -59,7 +62,10 @@ type AuthResponse struct {
 
 var (
 	rackspaceMK8SAuthURLTokenEndpoint string
+	client                            http.Client
 )
+
+const openstackCACertFilePath = "/etc/openstack/certs/ca.pem"
 
 // Authenticate checks user's credential against the Rackspace Managed Kubernetes Auth (kubernetes-auth)
 // if the check is successful a dummy record will be inserted into DB, such that this user can
@@ -84,7 +90,7 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 	log.Debugf("ProvidedUsername=%s Sending auth request: %s", m.Principal, rackspaceMK8SAuthURLTokenEndpoint)
 
 	// send auth request
-	resp, err := http.Post(rackspaceMK8SAuthURLTokenEndpoint, "application/json", bytes.NewReader(authRequestBody))
+	resp, err := client.Post(rackspaceMK8SAuthURLTokenEndpoint, "application/json", bytes.NewReader(authRequestBody))
 	if err != nil {
 		log.Errorf("ProvidedUsername=%s Error sending auth request: %v", m.Principal, err)
 		return nil, err
@@ -142,6 +148,7 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 
 		// set the Harbor Realname to the kubernetes-auth backend's UID because the UID is a static ID
 		// whereas the kubernetes-auth backend's Username can change (so put it in the Harbor Username field for convenience)
+		// the Password field is required but unused so we set it to something random
 		user = &models.User{}
 		user.Realname = authResp.Status.User.UID
 		user.Username = authResp.Status.User.Username
@@ -161,10 +168,33 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 }
 
 func init() {
+	log.Infof("Initialing Rackspace Managed Kubernetes Auth")
+
 	auth.Register("rackspace_mk8s_auth", &Auth{})
 	rackspaceMK8SAuthURL := config.RackspaceMK8SAuthURL()
 	rackspaceMK8SAuthURLTokenEndpoint = rackspaceMK8SAuthURL + "/authenticate/token"
-	log.Infof("Initializing Rackspace Managed Kubernetes Auth: rackspaceMK8SAuthURL=%s", rackspaceMK8SAuthURL)
+
+	if strings.HasPrefix(rackspaceMK8SAuthURL, "https") {
+		// Load CA cert
+		caCert, err := ioutil.ReadFile(openstackCACertFilePath)
+		if err != nil {
+			log.Fatalf("Error reading OpenStack CA Cert %s: %v", openstackCACertFilePath, err)
+		}
+		caCertPool := x509.NewCertPool()
+		caCertPool.AppendCertsFromPEM(caCert)
+
+		// Setup HTTPS client
+		tlsConfig := &tls.Config{
+			RootCAs: caCertPool,
+		}
+		transport := &http.Transport{TLSClientConfig: tlsConfig}
+		client = http.Client{Transport: transport}
+	} else {
+		// Setup HTTP client
+		client = http.Client{}
+	}
+
+	log.Infof("Initialized Rackspace Managed Kubernetes Auth: rackspaceMK8SAuthURL=%s", rackspaceMK8SAuthURL)
 }
 
 func randString() string {
