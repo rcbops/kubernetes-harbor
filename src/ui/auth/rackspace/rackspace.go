@@ -34,7 +34,9 @@ import (
 )
 
 // Auth implements Authenticator interface to authenticate against Rackspace Managed Kubernetes Auth (kubernetes-auth)
-type Auth struct{}
+type Auth struct {
+	auth.DefaultAuthenticateHelper
+}
 
 // AuthRequest is the request body format for kubernetes-auth
 type AuthRequest struct {
