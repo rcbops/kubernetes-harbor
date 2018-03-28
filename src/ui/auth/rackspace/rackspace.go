@@ -227,8 +227,8 @@ func randString() string {
 	return string(b)
 }
 
-// fake domain
-const defaultEmailDomain = "rackspace-mk8s.com"
+// (fake) default email domain
+const defaultEmailDomain = "fake-rackspace-mk8s.com"
 
 // emailAddress will return a unique email address for the given user
 // Harbor requires email addresses in its database to be unique.
