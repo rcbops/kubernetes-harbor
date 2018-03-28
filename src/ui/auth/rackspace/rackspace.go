@@ -24,13 +24,14 @@ import (
 	"io/ioutil"
 	"math/rand"
 	"net/http"
+	"net/url"
+	"os"
 	"strings"
 
 	"github.com/vmware/harbor/src/common/dao"
 	"github.com/vmware/harbor/src/common/models"
 	"github.com/vmware/harbor/src/common/utils/log"
 	"github.com/vmware/harbor/src/ui/auth"
-	"github.com/vmware/harbor/src/ui/config"
 )
 
 // Auth implements Authenticator interface to authenticate against Rackspace Managed Kubernetes Auth (kubernetes-auth)
@@ -138,6 +139,7 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 			log.Debugf("ProvidedUsername=%s UID=%s BackendUsername=%s backend username changed so updating database", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username)
 
 			user.Username = authResp.Status.User.Username
+			user.Email = emailAddress(user)
 
 			err = dao.ChangeUserProfile(*user)
 			if err != nil {
@@ -151,11 +153,12 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 		// set the Harbor Realname to the kubernetes-auth backend's UID because the UID is a static ID
 		// whereas the kubernetes-auth backend's Username can change (so put it in the Harbor Username field for convenience)
 		// the Password field is required but unused so we set it to something random
-		user = &models.User{}
+		user = new(models.User)
 		user.Realname = authResp.Status.User.UID
 		user.Username = authResp.Status.User.Username
 		user.Password = randString()
 		user.Comment = "Do not edit this user"
+		user.Email = emailAddress(user)
 
 		userID, err := dao.Register(*user)
 		if err != nil {
@@ -173,7 +176,7 @@ func init() {
 	log.Infof("Initialing Rackspace Managed Kubernetes Auth")
 
 	auth.Register("rackspace_mk8s_auth", &Auth{})
-	rackspaceMK8SAuthURL := config.RackspaceMK8SAuthURL()
+	rackspaceMK8SAuthURL := mk8sAuthURL()
 	rackspaceMK8SAuthURLTokenEndpoint = rackspaceMK8SAuthURL + "/authenticate/token"
 
 	if strings.HasPrefix(rackspaceMK8SAuthURL, "https") {
@@ -199,6 +202,22 @@ func init() {
 	log.Infof("Initialized Rackspace Managed Kubernetes Auth: rackspaceMK8SAuthURL=%s", rackspaceMK8SAuthURL)
 }
 
+func mk8sAuthURL() string {
+	rackspaceMK8SAuthURLEnvVar := "RACKSPACE_MK8S_AUTH_URL"
+
+	rackspaceMK8SAuthURL := os.Getenv(rackspaceMK8SAuthURLEnvVar)
+
+	if len(rackspaceMK8SAuthURL) == 0 {
+		rackspaceMK8SAuthURL = "http://app:8080"
+	}
+
+	if _, err := url.ParseRequestURI(rackspaceMK8SAuthURL); err != nil {
+		log.Fatalf("The env var %s is not a valid url %s", rackspaceMK8SAuthURLEnvVar, rackspaceMK8SAuthURL)
+	}
+
+	return rackspaceMK8SAuthURL
+}
+
 func randString() string {
 	letterBytes := "abcdefghijklmnopqrstuvwxyzABCDEFGHIJKLMNOPQRSTUVWXYZ"
 	b := make([]byte, 32)
@@ -206,4 +225,19 @@ func randString() string {
 		b[i] = letterBytes[rand.Intn(len(letterBytes))]
 	}
 	return string(b)
+}
+
+// (fake) default email domain
+const defaultEmailDomain = "fake-rackspace-mk8s.com"
+
+// emailAddress will return a unique email address for the given user
+// Harbor requires email addresses in its database to be unique.
+func emailAddress(u *models.User) string {
+	if u.Email != "" {
+		return u.Email
+	}
+	if u.Username != "" {
+		return fmt.Sprintf("%s@%s", u.Username, defaultEmailDomain)
+	}
+	return fmt.Sprintf("%s@%s", randString(), defaultEmailDomain)
 }
