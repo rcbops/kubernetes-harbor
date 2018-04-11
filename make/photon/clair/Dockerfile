@@ -1,5 +1,4 @@
-FROM vmware/photon:1.0
-
+FROM vmware/photon:latest
 
 RUN tdnf distro-sync -y \
     && tdnf erase vim -y \
@@ -11,6 +10,10 @@ RUN tdnf distro-sync -y \
 COPY ./binary/clair /clair2.0.1/
 COPY docker-entrypoint.sh /docker-entrypoint.sh
 COPY dumb-init /dumb-init 
+
+RUN mkdir /config
+
+RUN chown -R 10000:10000 /config
 
 VOLUME /config
 

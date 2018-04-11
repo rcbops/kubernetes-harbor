@@ -1,6 +1,4 @@
-FROM vmware/photon:1.0
-
-MAINTAINER wangyan@vmware.com
+FROM vmware/photon:latest
 
 # The original script in the docker offical registry image.
 RUN tdnf distro-sync -y \
@@ -18,6 +16,12 @@ COPY binary/registry /usr/bin
 RUN chmod u+x /usr/bin/registry
 
 HEALTHCHECK CMD curl 127.0.0.1:5000/
+
+RUN mkdir -p /var/lib/registry
+
+COPY perms.sh /
+RUN chmod u+x /perms.sh
+RUN /bin/sh /perms.sh
 
 VOLUME ["/var/lib/registry"]
 EXPOSE 5000
