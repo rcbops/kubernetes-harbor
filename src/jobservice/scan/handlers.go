@@ -17,10 +17,10 @@ package scan
 import (
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/manifest/schema2"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils/clair"
-	"github.com/vmware/harbor/src/jobservice/config"
-	"github.com/vmware/harbor/src/jobservice/utils"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/clair"
+	"github.com/rcbops/kubernetes-harbor/src/jobservice/config"
+	"github.com/rcbops/kubernetes-harbor/src/jobservice/utils"
 
 	"crypto/sha256"
 	"fmt"

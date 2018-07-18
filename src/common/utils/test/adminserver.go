@@ -19,8 +19,8 @@ import (
 	"net/http"
 	"net/http/httptest"
 
-	"github.com/vmware/harbor/src/adminserver/systeminfo/imagestorage"
-	"github.com/vmware/harbor/src/common"
+	"github.com/rcbops/kubernetes-harbor/src/adminserver/systeminfo/imagestorage"
+	"github.com/rcbops/kubernetes-harbor/src/common"
 )
 
 var adminServerDefaultConfig = map[string]interface{}{

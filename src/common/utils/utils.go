@@ -26,7 +26,7 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vmware/harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
 )
 
 // ParseEndpoint parses endpoint to a URL

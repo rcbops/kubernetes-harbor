@@ -19,8 +19,8 @@ import (
 	"fmt"
 	"reflect"
 
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/replication/event/notification"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/replication/event/notification"
 )
 
 //OnDeletionHandler implements the notification handler interface to handle image on push event.

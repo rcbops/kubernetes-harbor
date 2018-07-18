@@ -1,8 +1,8 @@
 package suites
 
 import (
-	"github.com/vmware/harbor/tests/apitests/api-testing/envs"
-	"github.com/vmware/harbor/tests/apitests/api-testing/lib"
+	"github.com/rcbops/kubernetes-harbor/tests/apitests/api-testing/envs"
+	"github.com/rcbops/kubernetes-harbor/tests/apitests/api-testing/lib"
 )
 
 //Suite : Run a group of test cases

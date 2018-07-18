@@ -17,13 +17,13 @@ import (
 	"os"
 	"testing"
 
-	"github.com/vmware/harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
 
-	"github.com/vmware/harbor/src/common"
-	"github.com/vmware/harbor/src/common/dao"
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/common/utils/test"
-	uiConfig "github.com/vmware/harbor/src/ui/config"
+	"github.com/rcbops/kubernetes-harbor/src/common"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/test"
+	uiConfig "github.com/rcbops/kubernetes-harbor/src/ui/config"
 )
 
 var adminServerLdapTestConfig = map[string]interface{}{

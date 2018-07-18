@@ -18,14 +18,14 @@ import (
 	"fmt"
 	"net/http"
 
-	"github.com/vmware/harbor/src/common/dao"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/notifier"
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/replication/core"
-	"github.com/vmware/harbor/src/replication/event/notification"
-	"github.com/vmware/harbor/src/replication/event/topic"
-	api_models "github.com/vmware/harbor/src/ui/api/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/notifier"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/replication/core"
+	"github.com/rcbops/kubernetes-harbor/src/replication/event/notification"
+	"github.com/rcbops/kubernetes-harbor/src/replication/event/topic"
+	api_models "github.com/rcbops/kubernetes-harbor/src/ui/api/models"
 )
 
 // ReplicationAPI handles API calls for replication

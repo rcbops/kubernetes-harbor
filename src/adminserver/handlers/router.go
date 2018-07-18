@@ -18,7 +18,7 @@ import (
 	"net/http"
 
 	"github.com/gorilla/mux"
-	"github.com/vmware/harbor/src/adminserver/api"
+	"github.com/rcbops/kubernetes-harbor/src/adminserver/api"
 )
 
 func newRouter() http.Handler {

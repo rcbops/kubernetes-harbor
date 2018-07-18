@@ -19,8 +19,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/tests/apitests/apilib"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/tests/apitests/apilib"
 )
 
 func TestLogGet(t *testing.T) {

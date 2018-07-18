@@ -20,17 +20,17 @@ import (
 	"strings"
 	"time"
 
-	"github.com/vmware/harbor/src/common/dao"
-	clairdao "github.com/vmware/harbor/src/common/dao/clair"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/notifier"
-	"github.com/vmware/harbor/src/common/utils"
-	"github.com/vmware/harbor/src/common/utils/log"
-	rep_notification "github.com/vmware/harbor/src/replication/event/notification"
-	"github.com/vmware/harbor/src/replication/event/topic"
-	"github.com/vmware/harbor/src/ui/api"
-	"github.com/vmware/harbor/src/ui/config"
-	uiutils "github.com/vmware/harbor/src/ui/utils"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	clairdao "github.com/rcbops/kubernetes-harbor/src/common/dao/clair"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/notifier"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	rep_notification "github.com/rcbops/kubernetes-harbor/src/replication/event/notification"
+	"github.com/rcbops/kubernetes-harbor/src/replication/event/topic"
+	"github.com/rcbops/kubernetes-harbor/src/ui/api"
+	"github.com/rcbops/kubernetes-harbor/src/ui/config"
+	uiutils "github.com/rcbops/kubernetes-harbor/src/ui/utils"
 )
 
 // NotificationHandler handles request on /service/notifications/, which listens to registry's events.

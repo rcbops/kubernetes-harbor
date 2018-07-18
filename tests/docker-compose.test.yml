@@ -13,7 +13,7 @@ services:
     command:
       ["serve", "/etc/registry/config.yml"]
   mysql:
-    image: vmware/harbor-db:__version__
+    image: rcbops/kubernetes-harbor-db:__version__
     restart: always
     volumes:
       - /data/database:/var/lib/mysql

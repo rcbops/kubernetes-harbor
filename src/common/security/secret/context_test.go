@@ -18,8 +18,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vmware/harbor/src/common"
-	"github.com/vmware/harbor/src/common/secret"
+	"github.com/rcbops/kubernetes-harbor/src/common"
+	"github.com/rcbops/kubernetes-harbor/src/common/secret"
 )
 
 func TestIsAuthenticated(t *testing.T) {

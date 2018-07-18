@@ -1,7 +1,7 @@
 package proxy
 
 import (
-	"github.com/vmware/harbor/src/ui/config"
+	"github.com/rcbops/kubernetes-harbor/src/ui/config"
 
 	"fmt"
 	"net/http"

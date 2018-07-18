@@ -29,9 +29,9 @@ import (
 	"runtime"
 	"testing"
 
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils/test"
-	"github.com/vmware/harbor/src/ui/config"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/test"
+	"github.com/rcbops/kubernetes-harbor/src/ui/config"
 )
 
 func TestMain(m *testing.M) {

@@ -20,7 +20,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/vmware/harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
 )
 
 var (

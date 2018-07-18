@@ -18,8 +18,8 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vmware/harbor/src/common"
-	"github.com/vmware/harbor/src/common/utils/test"
+	"github.com/rcbops/kubernetes-harbor/src/common"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/test"
 )
 
 // test functions under package ui/config

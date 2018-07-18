@@ -23,7 +23,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vmware/harbor/src/adminserver/systeminfo/imagestorage"
+	"github.com/rcbops/kubernetes-harbor/src/adminserver/systeminfo/imagestorage"
 )
 
 type fakeImageStorageDriver struct {

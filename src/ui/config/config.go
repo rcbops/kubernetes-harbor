@@ -22,17 +22,17 @@ import (
 	"os"
 	"strings"
 
-	"github.com/vmware/harbor/src/adminserver/client"
-	"github.com/vmware/harbor/src/common"
-	comcfg "github.com/vmware/harbor/src/common/config"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/secret"
-	"github.com/vmware/harbor/src/common/utils/log"
-	jobservice_client "github.com/vmware/harbor/src/jobservice/client"
-	"github.com/vmware/harbor/src/ui/promgr"
-	"github.com/vmware/harbor/src/ui/promgr/pmsdriver"
-	"github.com/vmware/harbor/src/ui/promgr/pmsdriver/admiral"
-	"github.com/vmware/harbor/src/ui/promgr/pmsdriver/local"
+	"github.com/rcbops/kubernetes-harbor/src/adminserver/client"
+	"github.com/rcbops/kubernetes-harbor/src/common"
+	comcfg "github.com/rcbops/kubernetes-harbor/src/common/config"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/secret"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	jobservice_client "github.com/rcbops/kubernetes-harbor/src/jobservice/client"
+	"github.com/rcbops/kubernetes-harbor/src/ui/promgr"
+	"github.com/rcbops/kubernetes-harbor/src/ui/promgr/pmsdriver"
+	"github.com/rcbops/kubernetes-harbor/src/ui/promgr/pmsdriver/admiral"
+	"github.com/rcbops/kubernetes-harbor/src/ui/promgr/pmsdriver/local"
 )
 
 const (

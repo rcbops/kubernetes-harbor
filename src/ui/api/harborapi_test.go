@@ -27,12 +27,12 @@ import (
 	"runtime"
 	"strconv"
 
-	"github.com/vmware/harbor/src/common/dao"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils"
-	"github.com/vmware/harbor/src/ui/config"
-	"github.com/vmware/harbor/src/ui/filter"
-	"github.com/vmware/harbor/tests/apitests/apilib"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils"
+	"github.com/rcbops/kubernetes-harbor/src/ui/config"
+	"github.com/rcbops/kubernetes-harbor/src/ui/filter"
+	"github.com/rcbops/kubernetes-harbor/tests/apitests/apilib"
 	//	"strconv"
 	//	"strings"
 
@@ -40,10 +40,10 @@ import (
 	"github.com/dghubble/sling"
 
 	//for test env prepare
-	"github.com/vmware/harbor/src/replication/core"
-	_ "github.com/vmware/harbor/src/replication/event"
-	_ "github.com/vmware/harbor/src/ui/auth/db"
-	_ "github.com/vmware/harbor/src/ui/auth/ldap"
+	"github.com/rcbops/kubernetes-harbor/src/replication/core"
+	_ "github.com/rcbops/kubernetes-harbor/src/replication/event"
+	_ "github.com/rcbops/kubernetes-harbor/src/ui/auth/db"
+	_ "github.com/rcbops/kubernetes-harbor/src/ui/auth/ldap"
 )
 
 const (

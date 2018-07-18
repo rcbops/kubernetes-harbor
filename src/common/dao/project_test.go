@@ -18,7 +18,7 @@ import (
 	"fmt"
 	"testing"
 
-	"github.com/vmware/harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
 )
 
 func TestDeleteProject(t *testing.T) {

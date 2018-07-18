@@ -17,7 +17,7 @@ package job
 import (
 	"time"
 
-	"github.com/vmware/harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
 )
 
 var jobQueue = make(chan Job)

@@ -15,12 +15,12 @@
 package main
 
 import (
-	"github.com/vmware/harbor/src/ui/api"
-	"github.com/vmware/harbor/src/ui/config"
-	"github.com/vmware/harbor/src/ui/controllers"
-	"github.com/vmware/harbor/src/ui/service/notifications/clair"
-	"github.com/vmware/harbor/src/ui/service/notifications/registry"
-	"github.com/vmware/harbor/src/ui/service/token"
+	"github.com/rcbops/kubernetes-harbor/src/ui/api"
+	"github.com/rcbops/kubernetes-harbor/src/ui/config"
+	"github.com/rcbops/kubernetes-harbor/src/ui/controllers"
+	"github.com/rcbops/kubernetes-harbor/src/ui/service/notifications/clair"
+	"github.com/rcbops/kubernetes-harbor/src/ui/service/notifications/registry"
+	"github.com/rcbops/kubernetes-harbor/src/ui/service/token"
 
 	"github.com/astaxie/beego"
 )

@@ -20,7 +20,7 @@ import (
 	"path/filepath"
 	"strconv"
 
-	"github.com/vmware/harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
 )
 
 // NewLogger create a logger for a speicified job

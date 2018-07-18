@@ -15,8 +15,8 @@
 package client
 
 import (
-	"github.com/vmware/harbor/src/common/http"
-	"github.com/vmware/harbor/src/common/http/modifier/auth"
+	"github.com/rcbops/kubernetes-harbor/src/common/http"
+	"github.com/rcbops/kubernetes-harbor/src/common/http/modifier/auth"
 )
 
 // Replication holds information for submiting a replication job

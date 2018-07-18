@@ -27,10 +27,10 @@ import (
 	"github.com/docker/notary/client"
 	"github.com/docker/notary/trustpinning"
 	"github.com/docker/notary/tuf/data"
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/common/utils/registry"
-	"github.com/vmware/harbor/src/ui/config"
-	tokenutil "github.com/vmware/harbor/src/ui/service/token"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/registry"
+	"github.com/rcbops/kubernetes-harbor/src/ui/config"
+	tokenutil "github.com/rcbops/kubernetes-harbor/src/ui/service/token"
 
 	"github.com/opencontainers/go-digest"
 )

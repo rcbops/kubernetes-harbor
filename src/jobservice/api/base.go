@@ -15,10 +15,10 @@
 package api
 
 import (
-	"github.com/vmware/harbor/src/common/api"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/jobservice/config"
+	"github.com/rcbops/kubernetes-harbor/src/common/api"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/jobservice/config"
 	"net/http"
 )
 

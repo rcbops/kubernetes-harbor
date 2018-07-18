@@ -15,8 +15,8 @@
 package test
 
 import (
-	"github.com/vmware/harbor/src/replication"
-	"github.com/vmware/harbor/src/replication/models"
+	"github.com/rcbops/kubernetes-harbor/src/replication"
+	"github.com/rcbops/kubernetes-harbor/src/replication/models"
 )
 
 type FakePolicyManager struct {

@@ -17,8 +17,8 @@ package job
 import (
 	"time"
 
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
 )
 
 // StateHandler handles transition, it associates with each state, will be called when

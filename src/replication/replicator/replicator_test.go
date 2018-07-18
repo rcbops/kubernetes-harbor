@@ -18,7 +18,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vmware/harbor/src/jobservice/client"
+	"github.com/rcbops/kubernetes-harbor/src/jobservice/client"
 )
 
 type fakeJobserviceClient struct{}

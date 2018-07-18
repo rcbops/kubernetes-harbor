@@ -19,7 +19,7 @@ import (
 	"net/http"
 	"testing"
 
-	"github.com/vmware/harbor/src/common/utils/test"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/test"
 )
 
 type simpleModifier struct {

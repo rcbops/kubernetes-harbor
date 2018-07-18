@@ -28,9 +28,9 @@ import (
 	"github.com/dghubble/sling"
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/vmware/harbor/src/common/dao"
-	common_http "github.com/vmware/harbor/src/common/http"
-	"github.com/vmware/harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	common_http "github.com/rcbops/kubernetes-harbor/src/common/http"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
 )
 
 var (

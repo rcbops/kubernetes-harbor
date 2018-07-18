@@ -17,10 +17,10 @@ package source
 import (
 	"strings"
 
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/replication"
-	"github.com/vmware/harbor/src/replication/models"
-	"github.com/vmware/harbor/src/replication/registry"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/replication"
+	"github.com/rcbops/kubernetes-harbor/src/replication/models"
+	"github.com/rcbops/kubernetes-harbor/src/replication/registry"
 )
 
 // TagFilter implements Filter interface to filter tag

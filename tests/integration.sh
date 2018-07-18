@@ -25,7 +25,7 @@ Xvfb -ac :99 -screen 0 1280x1024x16 & export DISPLAY=:99
 
 export DRONE_SERVER=$DRONE_SERVER
 export DRONE_TOKEN=$DRONE_TOKEN
-buildinfo=$(drone build info vmware/harbor $DRONE_BUILD_NUMBER)
+buildinfo=$(drone build info rcbops/kubernetes-harbor $DRONE_BUILD_NUMBER)
 echo $buildinfo
 git_commit=$(git rev-parse --short=8 HEAD)
 if [ $DRONE_BUILD_EVENT == "tag" ]; then
@@ -84,7 +84,7 @@ function package_offline_installer {
 }
 
 ## --------------------------------------------- Run Test Case ---------------------------------------------
-if [ $DRONE_REPO != "vmware/harbor" ]; then
+if [ $DRONE_REPO != "rcbops/kubernetes-harbor" ]; then
     echo "Only run tests again Harbor Repo."
     exit 1
 fi

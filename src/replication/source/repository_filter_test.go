@@ -18,9 +18,9 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vmware/harbor/src/replication"
-	"github.com/vmware/harbor/src/replication/models"
-	"github.com/vmware/harbor/src/replication/registry"
+	"github.com/rcbops/kubernetes-harbor/src/replication"
+	"github.com/rcbops/kubernetes-harbor/src/replication/models"
+	"github.com/rcbops/kubernetes-harbor/src/replication/registry"
 )
 
 func TestInitOfRepositoryFilter(t *testing.T) {

@@ -17,8 +17,8 @@ package systeminfo
 import (
 	"os"
 
-	"github.com/vmware/harbor/src/adminserver/systeminfo/imagestorage"
-	"github.com/vmware/harbor/src/adminserver/systeminfo/imagestorage/filesystem"
+	"github.com/rcbops/kubernetes-harbor/src/adminserver/systeminfo/imagestorage"
+	"github.com/rcbops/kubernetes-harbor/src/adminserver/systeminfo/imagestorage/filesystem"
 )
 
 // Init image storage driver

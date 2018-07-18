@@ -20,8 +20,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/vmware/harbor/src/common/dao"
-	"github.com/vmware/harbor/src/common/utils/test"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/test"
 )
 
 var mgr = NewDefaultProjectMetadataManager()

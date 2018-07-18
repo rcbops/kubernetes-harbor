@@ -18,7 +18,7 @@ import (
 	"errors"
 	"net/http"
 
-	"github.com/vmware/harbor/src/common/http/modifier"
+	"github.com/rcbops/kubernetes-harbor/src/common/http/modifier"
 )
 
 const (

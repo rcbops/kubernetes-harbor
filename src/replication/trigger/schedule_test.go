@@ -20,8 +20,8 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/vmware/harbor/src/common/scheduler"
-	"github.com/vmware/harbor/src/replication"
+	"github.com/rcbops/kubernetes-harbor/src/common/scheduler"
+	"github.com/rcbops/kubernetes-harbor/src/replication"
 )
 
 func TestAssembleName(t *testing.T) {

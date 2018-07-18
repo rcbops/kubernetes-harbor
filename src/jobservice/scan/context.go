@@ -15,9 +15,9 @@
 package scan
 
 import (
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils/clair"
-	"github.com/vmware/harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/clair"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
 )
 
 const (

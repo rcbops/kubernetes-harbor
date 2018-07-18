@@ -19,11 +19,11 @@ import (
 	"runtime/debug"
 	"sync"
 
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/jobservice/config"
-	"github.com/vmware/harbor/src/jobservice/replication"
-	"github.com/vmware/harbor/src/jobservice/scan"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/jobservice/config"
+	"github.com/rcbops/kubernetes-harbor/src/jobservice/replication"
+	"github.com/rcbops/kubernetes-harbor/src/jobservice/scan"
 )
 
 // SM is the state machine to handle job, it handles one job at a time.

@@ -15,8 +15,8 @@
 package target
 
 import (
-	"github.com/vmware/harbor/src/common/dao"
-	"github.com/vmware/harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
 )
 
 // Manager defines the methods that a target manager should implement

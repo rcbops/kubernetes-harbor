@@ -18,10 +18,10 @@ import (
 	"encoding/json"
 	"time"
 
-	"github.com/vmware/harbor/src/common/dao"
-	persist_models "github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/replication/models"
-	"github.com/vmware/harbor/src/ui/config"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	persist_models "github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/replication/models"
+	"github.com/rcbops/kubernetes-harbor/src/ui/config"
 )
 
 // Manager defines the method a policy manger should implement

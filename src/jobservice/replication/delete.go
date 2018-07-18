@@ -17,10 +17,10 @@ package replication
 import (
 	"errors"
 
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils/log"
-	//"github.com/vmware/harbor/src/common/utils/registry"
-	//"github.com/vmware/harbor/src/common/utils/registry/auth"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	//"github.com/rcbops/kubernetes-harbor/src/common/utils/registry"
+	//"github.com/rcbops/kubernetes-harbor/src/common/utils/registry/auth"
 	"crypto/tls"
 	"fmt"
 	"io/ioutil"

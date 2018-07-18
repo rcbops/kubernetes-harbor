@@ -1,7 +1,7 @@
 package registry
 
 import (
-	"github.com/vmware/harbor/src/replication/models"
+	"github.com/rcbops/kubernetes-harbor/src/replication/models"
 )
 
 //Adaptor defines the unified operations for all the supported registries such as Harbor or DockerHub.

@@ -15,9 +15,9 @@
 package encrypt
 
 import (
-	"github.com/vmware/harbor/src/adminserver/systemcfg/encrypt"
-	"github.com/vmware/harbor/src/adminserver/systemcfg/store"
-	"github.com/vmware/harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/adminserver/systemcfg/encrypt"
+	"github.com/rcbops/kubernetes-harbor/src/adminserver/systemcfg/store"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
 )
 
 const (

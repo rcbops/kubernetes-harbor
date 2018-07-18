@@ -20,12 +20,12 @@ import (
 	"sort"
 	"strings"
 
-	"github.com/vmware/harbor/src/common"
-	"github.com/vmware/harbor/src/common/dao"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils"
-	"github.com/vmware/harbor/src/common/utils/log"
-	uiutils "github.com/vmware/harbor/src/ui/utils"
+	"github.com/rcbops/kubernetes-harbor/src/common"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	uiutils "github.com/rcbops/kubernetes-harbor/src/ui/utils"
 )
 
 // SearchAPI handles requesst to /api/search

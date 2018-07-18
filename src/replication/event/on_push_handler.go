@@ -19,15 +19,15 @@ import (
 	"fmt"
 	"reflect"
 
-	common_models "github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/notifier"
-	"github.com/vmware/harbor/src/common/utils"
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/replication"
-	"github.com/vmware/harbor/src/replication/event/notification"
-	"github.com/vmware/harbor/src/replication/event/topic"
-	"github.com/vmware/harbor/src/replication/models"
-	"github.com/vmware/harbor/src/replication/trigger"
+	common_models "github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/notifier"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/replication"
+	"github.com/rcbops/kubernetes-harbor/src/replication/event/notification"
+	"github.com/rcbops/kubernetes-harbor/src/replication/event/topic"
+	"github.com/rcbops/kubernetes-harbor/src/replication/models"
+	"github.com/rcbops/kubernetes-harbor/src/replication/trigger"
 )
 
 //OnPushHandler implements the notification handler interface to handle image on push event.

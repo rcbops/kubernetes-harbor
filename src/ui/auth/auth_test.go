@@ -17,8 +17,8 @@ import (
 	"testing"
 	"time"
 
-	"github.com/vmware/harbor/src/common"
-	"github.com/vmware/harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
 )
 
 var l = NewUserLock(2 * time.Second)

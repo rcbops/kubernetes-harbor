@@ -3,14 +3,14 @@ package proxy
 import (
 	"encoding/json"
 
-	"github.com/vmware/harbor/src/common/dao"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils/clair"
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/common/utils/notary"
-	"github.com/vmware/harbor/src/ui/config"
-	"github.com/vmware/harbor/src/ui/promgr"
-	uiutils "github.com/vmware/harbor/src/ui/utils"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/clair"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/notary"
+	"github.com/rcbops/kubernetes-harbor/src/ui/config"
+	"github.com/rcbops/kubernetes-harbor/src/ui/promgr"
+	uiutils "github.com/rcbops/kubernetes-harbor/src/ui/utils"
 
 	"context"
 	"fmt"
@@ -27,7 +27,7 @@ const (
 	manifestURLPattern = `^/v2/((?:[a-z0-9]+(?:[._-][a-z0-9]+)*/)+)manifests/([\w][\w.:-]{0,127})`
 	catalogURLPattern  = `/v2/_catalog`
 	imageInfoCtxKey    = contextKey("ImageInfo")
-	//TODO: temp solution, remove after vmware/harbor#2242 is resolved.
+	//TODO: temp solution, remove after rcbops/kubernetes-harbor#2242 is resolved.
 	tokenUsername = "harbor-ui"
 )
 

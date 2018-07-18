@@ -19,10 +19,10 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/require"
-	"github.com/vmware/harbor/src/common/dao"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/replication"
-	api_models "github.com/vmware/harbor/src/ui/api/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/replication"
+	api_models "github.com/rcbops/kubernetes-harbor/src/ui/api/models"
 )
 
 const (

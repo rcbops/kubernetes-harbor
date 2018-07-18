@@ -19,9 +19,9 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/jobservice/config"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/jobservice/config"
 )
 
 // workerPool is a set of workers each worker is associate to a statemachine for handling jobs.

@@ -1,11 +1,11 @@
 package registry
 
 import (
-	"github.com/vmware/harbor/src/common/dao"
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/replication"
-	"github.com/vmware/harbor/src/replication/models"
-	"github.com/vmware/harbor/src/ui/utils"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/replication"
+	"github.com/rcbops/kubernetes-harbor/src/replication/models"
+	"github.com/rcbops/kubernetes-harbor/src/ui/utils"
 )
 
 // TODO refacotor the methods of HarborAdaptor by caling Harbor's API

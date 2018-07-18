@@ -15,9 +15,9 @@
 package job
 
 import (
-	"github.com/vmware/harbor/src/common/dao"
-	uti "github.com/vmware/harbor/src/common/utils"
-	"github.com/vmware/harbor/src/jobservice/config"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	uti "github.com/rcbops/kubernetes-harbor/src/common/utils"
+	"github.com/rcbops/kubernetes-harbor/src/jobservice/config"
 
 	"fmt"
 	"path/filepath"

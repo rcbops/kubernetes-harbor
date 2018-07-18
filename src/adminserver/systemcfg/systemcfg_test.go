@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vmware/harbor/src/common"
+	"github.com/rcbops/kubernetes-harbor/src/common"
 )
 
 func TestParseStringToInt(t *testing.T) {

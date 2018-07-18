@@ -23,10 +23,10 @@ import (
 	"time"
 
 	"github.com/docker/distribution/registry/auth/token"
-	"github.com/vmware/harbor/src/common/http/modifier"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils/log"
-	token_util "github.com/vmware/harbor/src/ui/service/token"
+	"github.com/rcbops/kubernetes-harbor/src/common/http/modifier"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	token_util "github.com/rcbops/kubernetes-harbor/src/ui/service/token"
 )
 
 const (

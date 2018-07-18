@@ -20,8 +20,8 @@ import (
 	"io/ioutil"
 	"net/http"
 
-	"github.com/vmware/harbor/src/common/api"
-	"github.com/vmware/harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/common/api"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
 )
 
 //ResponseHandler provides utility to handle http response.

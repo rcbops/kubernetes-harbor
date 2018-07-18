@@ -3,8 +3,8 @@ package notifier
 import (
 	"errors"
 
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils"
 )
 
 //WatchConfigChanges is used to watch the configuration changes.

@@ -19,13 +19,13 @@ import (
 	"net/http"
 	"strconv"
 
-	"github.com/vmware/harbor/src/common/dao"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils"
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/common/utils/registry"
-	"github.com/vmware/harbor/src/common/utils/registry/auth"
-	"github.com/vmware/harbor/src/ui/config"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/registry"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/registry/auth"
+	"github.com/rcbops/kubernetes-harbor/src/ui/config"
 )
 
 // TargetAPI handles request to /api/targets/ping /api/targets/{}

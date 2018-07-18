@@ -19,10 +19,10 @@ import (
 	"net/http"
 
 	"github.com/docker/distribution/registry/auth/token"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils/registry"
-	"github.com/vmware/harbor/src/common/utils/registry/auth"
-	"github.com/vmware/harbor/src/jobservice/config"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/registry"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/registry/auth"
+	"github.com/rcbops/kubernetes-harbor/src/jobservice/config"
 )
 
 // NewRepositoryClient creates a repository client with standard token authorizer

@@ -15,7 +15,7 @@
 package main
 
 import (
-	api "github.com/vmware/harbor/src/jobservice/api"
+	api "github.com/rcbops/kubernetes-harbor/src/jobservice/api"
 
 	"github.com/astaxie/beego"
 )

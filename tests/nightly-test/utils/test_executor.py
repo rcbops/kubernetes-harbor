@@ -14,7 +14,7 @@ logger = nlogging.create_logger(__name__)
 def execute(harbor_endpoints, vm_names, harbor_root_pwd, test_suite, auth_mode ,vc_host, vc_user, vc_password, harbor_pwd='Harbor12345') :
     cmd = ''
     exe_result = -1
-    cmd_base = "docker run -i --privileged -v %s:/drone -w /drone vmware/harbor-e2e-engine:1.38 " % os.getcwd()
+    cmd_base = "docker run -i --privileged -v %s:/drone -w /drone rcbops/kubernetes-harbor-e2e-engine:1.38 " % os.getcwd()
 
     if len(harbor_endpoints) == 1:
         cmd_pybot = "pybot -v ip:%s -v vm_name:%s -v HARBOR_PASSWORD:%s -v SSH_PWD:%s -v vc_host:%s -v vc_user:%s -v vc_password:%s " % (harbor_endpoints[0], vm_names[0], harbor_pwd, harbor_root_pwd, vc_host, vc_user, vc_password)

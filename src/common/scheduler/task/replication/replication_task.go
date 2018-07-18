@@ -1,9 +1,9 @@
 package replication
 
 import (
-	"github.com/vmware/harbor/src/common/notifier"
-	"github.com/vmware/harbor/src/replication/event/notification"
-	"github.com/vmware/harbor/src/replication/event/topic"
+	"github.com/rcbops/kubernetes-harbor/src/common/notifier"
+	"github.com/rcbops/kubernetes-harbor/src/replication/event/notification"
+	"github.com/rcbops/kubernetes-harbor/src/replication/event/topic"
 )
 
 //Task is the task for triggering one replication

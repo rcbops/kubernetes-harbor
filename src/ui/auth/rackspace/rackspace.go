@@ -28,10 +28,10 @@ import (
 	"os"
 	"strings"
 
-	"github.com/vmware/harbor/src/common/dao"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/ui/auth"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/ui/auth"
 )
 
 // Auth implements Authenticator interface to authenticate against Rackspace Managed Kubernetes Auth (kubernetes-auth)
@@ -173,20 +173,26 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 }
 
 func init() {
-	log.Infof("Initialing Rackspace Managed Kubernetes Auth")
+	log.Infof("Initialing Rackspace Kubernetes-as-a-Service Auth")
 
 	auth.Register("rackspace_mk8s_auth", &Auth{})
 	rackspaceMK8SAuthURL := mk8sAuthURL()
 	rackspaceMK8SAuthURLTokenEndpoint = rackspaceMK8SAuthURL + "/authenticate/token"
 
 	if strings.HasPrefix(rackspaceMK8SAuthURL, "https") {
-		// Load CA cert
-		caCert, err := ioutil.ReadFile(openstackCACertFilePath)
+		caCertPool, err := x509.SystemCertPool()
 		if err != nil {
-			log.Fatalf("Error reading OpenStack CA Cert %s: %v", openstackCACertFilePath, err)
+			log.Fatalf("failed to load system cert pool: %v", err)
 		}
-		caCertPool := x509.NewCertPool()
-		caCertPool.AppendCertsFromPEM(caCert)
+
+		// Load CA cert if present
+		if _, err := os.Stat(openstackCACertFilePath); err == nil {
+			caCert, err := ioutil.ReadFile(openstackCACertFilePath)
+			if err != nil {
+				log.Fatalf("error reading OpenStack CA Cert %s: %v", openstackCACertFilePath, err)
+			}
+			caCertPool.AppendCertsFromPEM(caCert)
+		}
 
 		// Setup HTTPS client
 		tlsConfig := &tls.Config{

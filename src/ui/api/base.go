@@ -17,11 +17,11 @@ package api
 import (
 	"net/http"
 
-	"github.com/vmware/harbor/src/common/api"
-	"github.com/vmware/harbor/src/common/security"
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/ui/filter"
-	"github.com/vmware/harbor/src/ui/promgr"
+	"github.com/rcbops/kubernetes-harbor/src/common/api"
+	"github.com/rcbops/kubernetes-harbor/src/common/security"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/ui/filter"
+	"github.com/rcbops/kubernetes-harbor/src/ui/promgr"
 )
 
 // BaseController ...

@@ -1,7 +1,7 @@
 package source
 
 import (
-	"github.com/vmware/harbor/src/replication/models"
+	"github.com/rcbops/kubernetes-harbor/src/replication/models"
 )
 
 //Convertor is designed to covert the format of output from upstream filter to the input format

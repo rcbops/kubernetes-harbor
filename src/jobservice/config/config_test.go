@@ -19,7 +19,7 @@ import (
 	"testing"
 
 	"github.com/stretchr/testify/assert"
-	"github.com/vmware/harbor/src/common/utils/test"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/test"
 )
 
 // test functions under package jobservice/config

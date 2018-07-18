@@ -19,12 +19,12 @@ import (
 	"regexp"
 	"time"
 
-	"github.com/vmware/harbor/src/common/dao"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils"
-	errutil "github.com/vmware/harbor/src/common/utils/error"
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/ui/promgr/pmsdriver"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils"
+	errutil "github.com/rcbops/kubernetes-harbor/src/common/utils/error"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/ui/promgr/pmsdriver"
 )
 
 const dupProjectPattern = `Duplicate entry '\w+' for key 'name'`

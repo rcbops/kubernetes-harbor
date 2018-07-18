@@ -20,16 +20,16 @@ import (
 	"strconv"
 	"strings"
 
-	enpt "github.com/vmware/harbor/src/adminserver/systemcfg/encrypt"
-	"github.com/vmware/harbor/src/adminserver/systemcfg/store"
-	"github.com/vmware/harbor/src/adminserver/systemcfg/store/database"
-	"github.com/vmware/harbor/src/adminserver/systemcfg/store/encrypt"
-	"github.com/vmware/harbor/src/adminserver/systemcfg/store/json"
-	"github.com/vmware/harbor/src/common"
-	comcfg "github.com/vmware/harbor/src/common/config"
-	"github.com/vmware/harbor/src/common/dao"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils/log"
+	enpt "github.com/rcbops/kubernetes-harbor/src/adminserver/systemcfg/encrypt"
+	"github.com/rcbops/kubernetes-harbor/src/adminserver/systemcfg/store"
+	"github.com/rcbops/kubernetes-harbor/src/adminserver/systemcfg/store/database"
+	"github.com/rcbops/kubernetes-harbor/src/adminserver/systemcfg/store/encrypt"
+	"github.com/rcbops/kubernetes-harbor/src/adminserver/systemcfg/store/json"
+	"github.com/rcbops/kubernetes-harbor/src/common"
+	comcfg "github.com/rcbops/kubernetes-harbor/src/common/config"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
 )
 
 const (

@@ -25,8 +25,8 @@ import (
 	"testing"
 
 	"github.com/docker/distribution/manifest/schema2"
-	registry_error "github.com/vmware/harbor/src/common/utils/error"
-	"github.com/vmware/harbor/src/common/utils/test"
+	registry_error "github.com/rcbops/kubernetes-harbor/src/common/utils/error"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/test"
 )
 
 var (

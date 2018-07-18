@@ -17,7 +17,7 @@ package filesystem
 import (
 	"syscall"
 
-	storage "github.com/vmware/harbor/src/adminserver/systeminfo/imagestorage"
+	storage "github.com/rcbops/kubernetes-harbor/src/adminserver/systeminfo/imagestorage"
 )
 
 const (

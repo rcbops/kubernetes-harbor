@@ -15,9 +15,9 @@
 package db
 
 import (
-	"github.com/vmware/harbor/src/common/dao"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/ui/auth"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/ui/auth"
 )
 
 // Auth implements Authenticator interface to authenticate user against DB.

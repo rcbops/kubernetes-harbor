@@ -16,13 +16,13 @@
 package utils
 
 import (
-	"github.com/vmware/harbor/src/common/dao"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/common/utils/registry"
-	"github.com/vmware/harbor/src/common/utils/registry/auth"
-	"github.com/vmware/harbor/src/ui/config"
-	"github.com/vmware/harbor/src/ui/service/token"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/registry"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/registry/auth"
+	"github.com/rcbops/kubernetes-harbor/src/ui/config"
+	"github.com/rcbops/kubernetes-harbor/src/ui/service/token"
 
 	"bytes"
 	"encoding/json"

@@ -15,9 +15,9 @@
     "license": "Apache 2.0",
     "repository": {
         "type": "git",
-        "url": "https://github.com/vmware/harbor.git"
+        "url": "https://github.com/rcbops/kubernetes-harbor.git"
     },
-    "homepage": "https://github.com/vmware/harbor#readme",
+    "homepage": "https://github.com/rcbops/kubernetes-harbor#readme",
     "peerDependencies": {
         "@angular/animations": "^4.3.0",
         "@angular/common": "^4.3.0",

@@ -4,10 +4,10 @@ import (
 	"fmt"
 	"time"
 
-	"github.com/vmware/harbor/src/common/scheduler"
-	"github.com/vmware/harbor/src/common/scheduler/policy"
-	replication_task "github.com/vmware/harbor/src/common/scheduler/task/replication"
-	"github.com/vmware/harbor/src/replication"
+	"github.com/rcbops/kubernetes-harbor/src/common/scheduler"
+	"github.com/rcbops/kubernetes-harbor/src/common/scheduler/policy"
+	replication_task "github.com/rcbops/kubernetes-harbor/src/common/scheduler/task/replication"
+	"github.com/rcbops/kubernetes-harbor/src/replication"
 )
 
 //ScheduleTrigger will schedule a alternate policy to provide 'daily' and 'weekly' trigger ways.

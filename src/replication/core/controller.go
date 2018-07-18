@@ -18,17 +18,17 @@ import (
 	"fmt"
 	"strings"
 
-	common_models "github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/jobservice/client"
-	"github.com/vmware/harbor/src/replication"
-	"github.com/vmware/harbor/src/replication/models"
-	"github.com/vmware/harbor/src/replication/policy"
-	"github.com/vmware/harbor/src/replication/replicator"
-	"github.com/vmware/harbor/src/replication/source"
-	"github.com/vmware/harbor/src/replication/target"
-	"github.com/vmware/harbor/src/replication/trigger"
-	"github.com/vmware/harbor/src/ui/config"
+	common_models "github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/jobservice/client"
+	"github.com/rcbops/kubernetes-harbor/src/replication"
+	"github.com/rcbops/kubernetes-harbor/src/replication/models"
+	"github.com/rcbops/kubernetes-harbor/src/replication/policy"
+	"github.com/rcbops/kubernetes-harbor/src/replication/replicator"
+	"github.com/rcbops/kubernetes-harbor/src/replication/source"
+	"github.com/rcbops/kubernetes-harbor/src/replication/target"
+	"github.com/rcbops/kubernetes-harbor/src/replication/trigger"
+	"github.com/rcbops/kubernetes-harbor/src/ui/config"
 )
 
 // Controller defines the methods that a replicatoin controllter should implement

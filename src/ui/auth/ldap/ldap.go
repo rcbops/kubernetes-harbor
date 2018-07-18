@@ -19,11 +19,11 @@ import (
 	"regexp"
 	"strings"
 
-	"github.com/vmware/harbor/src/common/dao"
-	"github.com/vmware/harbor/src/common/models"
-	ldapUtils "github.com/vmware/harbor/src/common/utils/ldap"
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/ui/auth"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	ldapUtils "github.com/rcbops/kubernetes-harbor/src/common/utils/ldap"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/ui/auth"
 )
 
 // Auth implements AuthenticateHelper interface to authenticate against LDAP

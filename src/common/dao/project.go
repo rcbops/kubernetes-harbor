@@ -15,13 +15,13 @@
 package dao
 
 import (
-	"github.com/vmware/harbor/src/common"
-	"github.com/vmware/harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
 
 	"fmt"
 	"time"
 
-	//"github.com/vmware/harbor/src/common/utils/log"
+	//"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
 )
 
 //TODO:transaction, return err

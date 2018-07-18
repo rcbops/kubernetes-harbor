@@ -20,13 +20,13 @@ import (
 	"strings"
 	"sync"
 
-	"github.com/vmware/harbor/src/common"
-	"github.com/vmware/harbor/src/common/dao"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/common/utils/uaa"
-	"github.com/vmware/harbor/src/ui/auth"
-	"github.com/vmware/harbor/src/ui/config"
+	"github.com/rcbops/kubernetes-harbor/src/common"
+	"github.com/rcbops/kubernetes-harbor/src/common/dao"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/uaa"
+	"github.com/rcbops/kubernetes-harbor/src/ui/auth"
+	"github.com/rcbops/kubernetes-harbor/src/ui/config"
 )
 
 // Auth is the implementation of AuthenticateHelper to access uaa for authentication.

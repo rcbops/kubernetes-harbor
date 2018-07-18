@@ -22,7 +22,7 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
-	"github.com/vmware/harbor/tests/apitests/apilib"
+	"github.com/rcbops/kubernetes-harbor/tests/apitests/apilib"
 )
 
 const (

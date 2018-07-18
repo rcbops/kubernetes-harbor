@@ -28,13 +28,13 @@ import (
 	"github.com/docker/distribution"
 	"github.com/docker/distribution/manifest/schema1"
 	"github.com/docker/distribution/manifest/schema2"
-	"github.com/vmware/harbor/src/common/models"
-	comutils "github.com/vmware/harbor/src/common/utils"
-	"github.com/vmware/harbor/src/common/utils/log"
-	"github.com/vmware/harbor/src/common/utils/registry"
-	"github.com/vmware/harbor/src/common/utils/registry/auth"
-	"github.com/vmware/harbor/src/jobservice/config"
-	"github.com/vmware/harbor/src/jobservice/utils"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	comutils "github.com/rcbops/kubernetes-harbor/src/common/utils"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/registry"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/registry/auth"
+	"github.com/rcbops/kubernetes-harbor/src/jobservice/config"
+	"github.com/rcbops/kubernetes-harbor/src/jobservice/utils"
 )
 
 const (

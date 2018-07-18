@@ -19,11 +19,11 @@ import (
 	"os"
 	"strings"
 
-	"github.com/vmware/harbor/src/adminserver/client"
-	"github.com/vmware/harbor/src/common"
-	comcfg "github.com/vmware/harbor/src/common/config"
-	"github.com/vmware/harbor/src/common/models"
-	"github.com/vmware/harbor/src/common/utils/log"
+	"github.com/rcbops/kubernetes-harbor/src/adminserver/client"
+	"github.com/rcbops/kubernetes-harbor/src/common"
+	comcfg "github.com/rcbops/kubernetes-harbor/src/common/config"
+	"github.com/rcbops/kubernetes-harbor/src/common/models"
+	"github.com/rcbops/kubernetes-harbor/src/common/utils/log"
 )
 
 const (

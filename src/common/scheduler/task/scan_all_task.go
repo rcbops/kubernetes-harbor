@@ -1,7 +1,7 @@
 package task
 
 import (
-	"github.com/vmware/harbor/src/ui/utils"
+	"github.com/rcbops/kubernetes-harbor/src/ui/utils"
 )
 
 //ScanAllTask is task of scanning all tags.

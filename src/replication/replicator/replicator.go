@@ -15,7 +15,7 @@
 package replicator
 
 import (
-	"github.com/vmware/harbor/src/jobservice/client"
+	"github.com/rcbops/kubernetes-harbor/src/jobservice/client"
 )
 
 // Replicator submits the replication work to the jobservice
