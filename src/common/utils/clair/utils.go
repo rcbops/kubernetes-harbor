@@ -15,12 +15,10 @@
 package clair
 
 import (
-	"github.com/vmware/harbor/src/common"
+	"fmt"
 	"github.com/vmware/harbor/src/common/dao"
 	"github.com/vmware/harbor/src/common/models"
 	"github.com/vmware/harbor/src/common/utils/log"
-
-	"fmt"
 	"strings"
 )
 
@@ -36,7 +34,7 @@ func ParseClairSev(clairSev string) models.Severity {
 		return models.SevLow
 	case models.SeverityMedium:
 		return models.SevMedium
-	case models.SeverityHigh:
+	case models.SeverityHigh, models.SeverityCritical:
 		return models.SevHigh
 	default:
 		return models.SevUnknown
@@ -44,7 +42,7 @@ func ParseClairSev(clairSev string) models.Severity {
 }
 
 // UpdateScanOverview qeuries the vulnerability based on the layerName and update the record in img_scan_overview table based on digest.
-func UpdateScanOverview(digest, layerName string, l ...*log.Logger) error {
+func UpdateScanOverview(digest, layerName string, clairEndpoint string, l ...*log.Logger) error {
 	var logger *log.Logger
 	if len(l) > 1 {
 		return fmt.Errorf("More than one logger specified")
@@ -53,7 +51,7 @@ func UpdateScanOverview(digest, layerName string, l ...*log.Logger) error {
 	} else {
 		logger = log.DefaultLogger()
 	}
-	client := NewClient(common.DefaultClairEndpoint, logger)
+	client := NewClient(clairEndpoint, logger)
 	res, err := client.GetResult(layerName)
 	if err != nil {
 		logger.Errorf("Failed to get result from Clair, error: %v", err)
@@ -94,4 +92,9 @@ func transformVuln(clairVuln *models.ClairLayerEnvelope) (*models.ComponentsOver
 		Total:   totalComponents,
 		Summary: compSummary,
 	}, overallSev
+}
+
+//TransformVuln is for running scanning job in both job service V1 and V2.
+func TransformVuln(clairVuln *models.ClairLayerEnvelope) (*models.ComponentsOverview, models.Severity) {
+	return transformVuln(clairVuln)
 }

@@ -144,6 +144,7 @@ func main() {
 
 	filter.Init()
 	beego.InsertFilter("/*", beego.BeforeRouter, filter.SecurityFilter)
+	beego.InsertFilter("/*", beego.BeforeRouter, filter.ReadonlyFilter)
 	beego.InsertFilter("/api/*", beego.BeforeRouter, filter.MediaTypeFilter("application/json"))
 
 	initRouters()

@@ -178,6 +178,7 @@
         "REPLICATION": "Replication",
         "USERS": "Members",
         "LOGS": "Logs",
+        "LABELS": "Labels",
         "PROJECTS": "Projects",
         "CONFIG": "Configuration"
     },
@@ -322,8 +323,8 @@
         "PLACEHOLDER": "We couldn't find any replication rules!",
         "JOB_PLACEHOLDER": "We couldn't find any replication jobs!",
         "JOB_LOG_VIEWER": "View Replication Job Log",
-        "NO_ENDPOINT_INFO": "Please go to registries and add an endpoint first",
-        "NO_PROJECT_INFO": "Please go to projects and add a project name first",
+        "NO_ENDPOINT_INFO": "Please add an endpoint first",
+        "NO_PROJECT_INFO": "Please add a project name first",
         "SOURCE_IMAGES_FILTER": "Source images filter",
         "SCHEDULE": "Scheduled",
         "MANUAL": "Manual",
@@ -335,7 +336,7 @@
         "TARGETS":"Target",
         "MODE": "Mode",
         "TRIGGER_MODE": "Trigger Mode",
-        "SOURCE": "Source",
+        "SOURCE_PROJECT": "Source project",
         "REPLICATE": "Replicate",
         "DELETE_REMOTE_IMAGES":"Delete remote images when locally deleted",
         "REPLICATE_IMMEDIATE":"Replicate existing images immediately",
@@ -389,6 +390,7 @@
         "DELETION_SUMMARY_TAG": "Do you want to delete tag {{param}}?",
         "DELETION_TITLE_TAG_DENIED": "Signed tag cannot be deleted",
         "DELETION_SUMMARY_TAG_DENIED": "The tag must be removed from the Notary before it can be deleted.\nDelete from Notary via this command:\n{{param}}",
+        "TAGS_NO_DELETE": "Delete is prohibited in read only mode.",
         "FILTER_FOR_REPOSITORIES": "Filter Repositories",
         "TAG": "Tag",
         "SIZE": "Size",
@@ -403,6 +405,7 @@
         "REPOSITORIES": "Repositories",
         "OF": "of",
         "ITEMS": "items",
+        "NO_ITEMS": "NO ITEMS",
         "POP_REPOS": "Popular Repositories",
         "DELETED_REPO_SUCCESS": "Deleted repositories successfully.",
         "DELETED_TAG_SUCCESS": "Deleted tags successfully.",
@@ -411,7 +414,14 @@
         "PLACEHOLDER": "We couldn't find any repositories!",
         "INFO": "Info",
         "NO_INFO": "No description info for this repository",
-        "IMAGE": "Images"
+        "IMAGE": "Images",
+        "LABELS": "Labels",
+        "ADD_TO_IMAGE": "Add labels to this image",
+        "FILTER_BY_LABEL": "Filter images by label",
+        "ADD_LABELS": "Add labels",
+        "ACTION": "ACTION",
+        "DEPLOY": "DEPLOY",
+        "ADDITIONAL_INFO": "Add Additional Info"
     },
     "ALERT": {
         "FORM_CHANGE_CONFIRMATION": "Some changes are not saved yet. Do you want to cancel?"
@@ -433,6 +443,9 @@
         "AUTH": "Authentication",
         "REPLICATION": "Replication",
         "EMAIL": "Email",
+        "LABEL": "Labels",
+        "REPOSITORY": "Repository",
+        "REPO_READ_ONLY": "Repository Read Only",
         "SYSTEM": "System Settings",
         "VULNERABILITY": "Vulnerability",
         "CONFIRM_TITLE": "Confirm to cancel",
@@ -475,7 +488,8 @@
             "PRO_CREATION_RESTRICTION": "The flag to define what users have permission to create projects. By default, everyone can create a project. Set to 'Admin Only' so that only an administrator can create a project.",
             "ROOT_CERT_DOWNLOAD": "Download the root certificate of registry.",
             "SCANNING_POLICY": "Set image scanning policy based on different requirements. 'None': No active policy; 'Daily At': Triggering scanning at the specified time everyday.",
-            "VERIFY_CERT": "Verify Cert from LDAP Server"
+            "VERIFY_CERT": "Verify Cert from LDAP Server",
+            "READONLY_TOOLTIP": "In read-only mode, you can not delete repositories or tags or push images. "
         },
         "LDAP": {
             "URL": "LDAP URL",
@@ -608,9 +622,28 @@
         "OS": "OS",
         "SCAN_COMPLETION_TIME": "Scan Completed",
         "IMAGE_VULNERABILITIES": "Image Vulnerabilities",
+        "LEVEL_VULNERABILITIES": "Level Vulnerabilities",
         "PLACEHOLDER": "We couldn't find any tags!",
         "COPY_ERROR": "Copy failed, please try to manually copy.",
-        "FILTER_FOR_TAGS": "Filter Tags"
+        "FILTER_FOR_TAGS": "Filter Tags",
+        "AUTHOR": "Author",
+        "LABELS": "Labels"
+    },
+    "LABEL": {
+        "LABEL": "Label",
+        "DESCRIPTION": "Description",
+        "CREATION_TIME": "Creation Time",
+        "NEW_LABEL": "New Label",
+        "EDIT": "Edit",
+        "DELETE": "Delete",
+        "LABEL_NAME": "Label Name",
+        "COLOR": "Color",
+        "FILTER_LABEL_PLACEHOLDER": "Filter Labels",
+        "NO_LABELS": "No labels",
+        "DELETION_TITLE_TARGET": "Confirm Label Deletion",
+        "DELETION_SUMMARY_TARGET": "Do you want to delete {{param}}?",
+        "PLACEHOLDER": "We couldn't find any labels!",
+        "NAME_ALREADY_EXISTS": "Label name already exists."
     },
     "WEEKLY": {
         "MONDAY": "Monday",
@@ -623,6 +656,7 @@
     },
     "UNKNOWN_ERROR": "Unknown errors have occurred. Please try again later.",
     "UNAUTHORIZED_ERROR": "Your session is invalid or has expired. You need to sign in to continue your action.",
+    "REPO_READ_ONLY": "Harbor is set to read-only mode, Deleting repository, tag and pushing image will be disabled under read-only mode.",
     "FORBIDDEN_ERROR": "You do not have the proper privileges to perform the action.",
     "GENERAL_ERROR": "Errors have occurred when performing service call: {{param}}.",
     "BAD_REQUEST_ERROR": "We are unable to perform your action because of a bad request.",

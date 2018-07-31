@@ -13,10 +13,12 @@
 // limitations under the License.
 import { Component, OnInit } from '@angular/core';
 import { ActivatedRoute, Router } from '@angular/router';
+import {AppConfigService} from "../../app-config.service";
 
 @Component({
   selector: 'repository',
-  templateUrl: 'tag-detail-page.component.html'
+  templateUrl: 'tag-detail-page.component.html',
+  styles: ['.arrow-block a{text-decoration: none; cursor: pointer; cursor: pointer; color: #007cbb; font-size: 12px;}']
 })
 export class TagDetailPageComponent implements OnInit {
   tagId: string;
@@ -25,6 +27,7 @@ export class TagDetailPageComponent implements OnInit {
 
   constructor(
     private route: ActivatedRoute,
+    private appConfigService: AppConfigService,
     private router: Router
   ) {
   }
@@ -32,10 +35,24 @@ export class TagDetailPageComponent implements OnInit {
   ngOnInit(): void {
     this.repositoryId = this.route.snapshot.params["repo"];
     this.tagId = this.route.snapshot.params["tag"];
-    this.projectId = this.route.snapshot.parent.params["id"];
+    this.projectId = this.route.snapshot.params["id"];
+  }
+
+  get withAdmiral(): boolean {
+    return this.appConfigService.getConfig().with_admiral;
+  }
+
+  get withClair(): boolean {
+    return this.appConfigService.getConfig().with_clair;
   }
 
   goBack(tag: string): void {
+    this.router.navigate(["harbor", "projects", this.projectId, "repositories", tag]);
+  }
+  goBackRep(): void {
     this.router.navigate(["harbor", "projects", this.projectId, "repositories"]);
+  }
+  goBackPro(): void {
+    this.router.navigate(["harbor", "projects"]);
   }
 }

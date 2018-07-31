@@ -15,6 +15,7 @@
 package auth
 
 import (
+	"errors"
 	"fmt"
 	"time"
 
@@ -30,18 +31,44 @@ const frozenTime time.Duration = 1500 * time.Millisecond
 
 var lock = NewUserLock(frozenTime)
 
+// ErrorUserNotExist ...
+var ErrorUserNotExist = errors.New("User does not exist")
+
+// ErrorGroupNotExist ...
+var ErrorGroupNotExist = errors.New("Group does not exist")
+
+//ErrAuth is the type of error to indicate a failed authentication due to user's error.
+type ErrAuth struct {
+	details string
+}
+
+//Error ...
+func (ea ErrAuth) Error() string {
+	return fmt.Sprintf("Failed to authenticate user, due to error '%s'", ea.details)
+}
+
+//NewErrAuth ...
+func NewErrAuth(msg string) ErrAuth {
+	return ErrAuth{details: msg}
+}
+
 // AuthenticateHelper provides interface for user management in different auth modes.
 type AuthenticateHelper interface {
 
-	// Authenticate ...
+	// Authenticate authenticate the user based on data in m.  Only when the error returned is an instance
+	// of ErrAuth, it will be considered a bad credentials, other errors will be treated as server side error.
 	Authenticate(m models.AuthModel) (*models.User, error)
 	// OnBoardUser will check if a user exists in user table, if not insert the user and
 	// put the id in the pointer of user model, if it does exist, fill in the user model based
 	// on the data record of the user
 	OnBoardUser(u *models.User) error
+	// Create a group in harbor DB, if altGroupName is not empty, take the altGroupName as groupName in harbor DB.
+	OnBoardGroup(g *models.UserGroup, altGroupName string) error
 	// Get user information from account repository
 	SearchUser(username string) (*models.User, error)
-	// Update user information after authenticate, such as Onboard or sync info etc
+	// Search a group based on specific authentication
+	SearchGroup(groupDN string) (*models.UserGroup, error)
+	// Update user information after authenticate, such as OnBoard or sync info etc
 	PostAuthenticate(u *models.User) error
 }
 
@@ -51,24 +78,34 @@ type DefaultAuthenticateHelper struct {
 
 // Authenticate ...
 func (d *DefaultAuthenticateHelper) Authenticate(m models.AuthModel) (*models.User, error) {
-	return nil, nil
+	return nil, errors.New("Not supported")
 }
 
 // OnBoardUser will check if a user exists in user table, if not insert the user and
 // put the id in the pointer of user model, if it does exist, fill in the user model based
 // on the data record of the user
 func (d *DefaultAuthenticateHelper) OnBoardUser(u *models.User) error {
-	return nil
+	return errors.New("Not supported")
 }
 
 //SearchUser - Get user information from account repository
 func (d *DefaultAuthenticateHelper) SearchUser(username string) (*models.User, error) {
-	return nil, nil
+	return nil, errors.New("Not supported")
 }
 
-//PostAuthenticate - Update user information after authenticate, such as Onboard or sync info etc
+//PostAuthenticate - Update user information after authenticate, such as OnBoard or sync info etc
 func (d *DefaultAuthenticateHelper) PostAuthenticate(u *models.User) error {
 	return nil
+}
+
+// OnBoardGroup - OnBoardGroup, it will set the ID of the user group, if altGroupName is not empty, take the altGroupName as groupName in harbor DB.
+func (d *DefaultAuthenticateHelper) OnBoardGroup(u *models.UserGroup, altGroupName string) error {
+	return errors.New("Not supported")
+}
+
+// SearchGroup - Search ldap group by group key, groupKey is the unique attribute of group in authenticator, for LDAP, the key is group DN
+func (d *DefaultAuthenticateHelper) SearchGroup(groupKey string) (*models.UserGroup, error) {
+	return nil, errors.New("Not supported")
 }
 
 var registry = make(map[string]AuthenticateHelper)
@@ -104,17 +141,24 @@ func Login(m models.AuthModel) (*models.User, error) {
 		return nil, nil
 	}
 	user, err := authenticator.Authenticate(m)
+<<<<<<< HEAD
 	if user == nil {
 		if err == nil {
+=======
+	if err != nil {
+		if _, ok = err.(ErrAuth); ok {
+>>>>>>> v1.5.2
 			log.Debugf("Login failed, locking %s, and sleep for %v", m.Principal, frozenTime)
 			lock.Lock(m.Principal)
 			time.Sleep(frozenTime)
 		}
+<<<<<<< HEAD
 		return user, err
+=======
+		return nil, err
+>>>>>>> v1.5.2
 	}
-
 	err = authenticator.PostAuthenticate(user)
-
 	return user, err
 }
 
@@ -148,6 +192,57 @@ func SearchUser(username string) (*models.User, error) {
 		return nil, err
 	}
 	return helper.SearchUser(username)
+}
+
+// OnBoardGroup - Create a user group in harbor db, if altGroupName is not empty, take the altGroupName as groupName in harbor DB
+func OnBoardGroup(userGroup *models.UserGroup, altGroupName string) error {
+	helper, err := getHelper()
+	if err != nil {
+		return err
+	}
+	return helper.OnBoardGroup(userGroup, altGroupName)
+}
+
+// SearchGroup -- Search group in authenticator, groupKey is the unique attribute of group in authenticator, for LDAP, the key is group DN
+func SearchGroup(groupKey string) (*models.UserGroup, error) {
+	helper, err := getHelper()
+	if err != nil {
+		return nil, err
+	}
+	return helper.SearchGroup(groupKey)
+}
+
+// SearchAndOnBoardUser ... Search user and OnBoard user, if user exist, return the ID of current user.
+func SearchAndOnBoardUser(username string) (int, error) {
+	user, err := SearchUser(username)
+	if user == nil {
+		return 0, ErrorUserNotExist
+	}
+	if err != nil {
+		return 0, err
+	}
+	if user != nil {
+		err = OnBoardUser(user)
+		if err != nil {
+			return 0, err
+		}
+	}
+	return user.UserID, nil
+}
+
+// SearchAndOnBoardGroup ... if altGroupName is not empty, take the altGroupName as groupName in harbor DB
+func SearchAndOnBoardGroup(groupKey, altGroupName string) (int, error) {
+	userGroup, err := SearchGroup(groupKey)
+	if userGroup == nil {
+		return 0, ErrorGroupNotExist
+	}
+	if err != nil {
+		return 0, err
+	}
+	if userGroup != nil {
+		err = OnBoardGroup(userGroup, altGroupName)
+	}
+	return userGroup.ID, err
 }
 
 // PostAuthenticate -

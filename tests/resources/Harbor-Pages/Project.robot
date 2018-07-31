@@ -44,11 +44,11 @@ Create An New Project With New User
 
 #It's the log of project.
 Go To Project Log
-    Click Element  xpath=//project-detail//ul/li[3]
+    Click Element  xpath=${project_log_xpath}
     Sleep  2
 
 Switch To Member
-    Click Element  xpath=//project-detail//li[2]
+    Click Element  xpath=${project_member_xpath}
     Sleep  1
 
 Switch To Log
@@ -104,6 +104,15 @@ Delete Repo
     Click Element  xpath=//clr-modal//button[2]
     Sleep  1
     Click Element  xpath=//button[contains(.,"CLOSE")]
+
+Delete Repo on CardView
+    [Arguments]  ${reponame}
+    Click Element  xpath=//hbr-gridview//span[contains(.,'reponame')]//clr-dropdown/button
+    Sleep  1
+    Click Element  xpath=//hbr-gridview//span[contains(.,'reponame')]//clr-dropdown/clr-dropdown-menu/button[contains(.,'Delete')]
+    Sleep  1
+    Click Element  //clr-modal//button[contains(.,'DELETE')]
+    Sleep  3
 
 Delete Project
     [Arguments]  ${projectname}
@@ -190,17 +199,15 @@ Go Into Repo
     Sleep  2
     Capture Page Screenshot  gointo_${repoName}.png
 
+Switch To CardView
+    Sleep  2
+    Click Element  xpath=//hbr-repository-gridview//span[1]/clr-icon
+    Sleep  5
+
 Expand Repo
     [Arguments]  ${projectname}
     Click Element  //repository//clr-dg-row[contains(.,'${projectname}')]//button/clr-icon
     Sleep  1
-
-Scan Repo
-    [Arguments]  ${tagname}
-    #select one tag
-    Click Element  //clr-dg-row[contains(.,"${tagname}")]//label
-    Click Element  //button[contains(.,'Scan')]
-    Sleep  15
 
 Edit Repo Info
     Click Element  //*[@id="repo-info"]
@@ -222,6 +229,41 @@ Edit Repo Info
     Page Should Contain  test_description_info
     Capture Page Screenshot  RepoInfo.png
 
-Summary Chart Should Display
-    [Arguments]  ${tagname}
-    Page Should Contain Element  //clr-dg-row[contains(.,'${tagname}')]//hbr-vulnerability-bar//hbr-vulnerability-summary-chart
+Switch To Project Label
+    Click Element  xpath=//project-detail//a[contains(.,'Labels')]
+    Sleep  1
+
+Switch To Project Repo
+    Click Element  xpath=//project-detail//a[contains(.,'Repositories')]
+    Sleep  1
+
+Add Labels To Tag
+    [Arguments]  ${tagName}  ${labelName}
+    Click Element  xpath=//clr-dg-row[contains(.,"${tagName}")]//label
+    Sleep  1
+    Click Element  xpath=//clr-dg-action-bar//clr-dropdown//button
+    Sleep  1
+    Click Element  xpath=//clr-dropdown//div//label[contains(.,"${labelName}")]
+    Sleep  3
+    Page Should Contain Element  xpath=//clr-dg-row//label[contains(.,"${labelName}")]
+
+Filter Labels In Tags
+    [Arguments]  ${labelName1}  ${labelName2}
+    Sleep  2
+    Click Element  xpath=//clr-dropdown/hbr-filter/span/clr-icon
+    Sleep  2
+    Page Should Contain Element  xpath=//tag-repository//clr-dropdown-menu/div//button[contains(.,"${labelName1}")]
+    Click Element  xpath=//tag-repository//clr-dropdown-menu/div//button[contains(.,"${labelName1}")]
+    Sleep  2
+    Click Element  xpath=//clr-dropdown/hbr-filter/span/clr-icon
+    Page Should Contain Element  xpath=//clr-datagrid//label[contains(.,"${labelName1}")]
+
+    Click Element  xpath=//clr-dropdown/hbr-filter/span/clr-icon
+    Sleep  2
+    Click Element  xpath=//tag-repository//clr-dropdown-menu/div//button[contains(.,"${labelName2}")]
+    Sleep  2
+    Click Element  xpath=//clr-dropdown/hbr-filter/span/clr-icon
+    Sleep  2
+    Capture Page Screenshot  filter_${labelName2}.png
+    Page Should Contain Element  xpath=//clr-dg-row[contains(.,"${labelName2}")]
+    Page Should Not Contain Element  xpath=//clr-dg-row[contains(.,"${labelName1}")]

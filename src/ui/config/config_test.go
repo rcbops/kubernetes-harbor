@@ -15,6 +15,8 @@ package config
 
 import (
 	"os"
+	"path"
+	"runtime"
 	"testing"
 
 	"github.com/stretchr/testify/assert"
@@ -24,7 +26,12 @@ import (
 
 // test functions under package ui/config
 func TestConfig(t *testing.T) {
-	server, err := test.NewAdminserver(nil)
+
+	defaultCACertPath = path.Join(currPath(), "test", "ca.crt")
+	c := map[string]interface{}{
+		common.AdmiralEndpoint: "http://www.vmware.com",
+	}
+	server, err := test.NewAdminserver(c)
 	if err != nil {
 		t.Fatalf("failed to create a mock admin server: %v", err)
 	}
@@ -73,6 +80,10 @@ func TestConfig(t *testing.T) {
 
 	if _, err := LDAPConf(); err != nil {
 		t.Fatalf("failed to get ldap settings: %v", err)
+	}
+
+	if _, err := LDAPGroupConf(); err != nil {
+		t.Fatalf("failed to get ldap group settings: %v", err)
 	}
 
 	if _, err := TokenExpiration(); err != nil {
@@ -142,6 +153,9 @@ func TestConfig(t *testing.T) {
 	if !WithAdmiral() {
 		t.Errorf("WithAdmiral should be true")
 	}
+	if ReadOnly() {
+		t.Errorf("ReadOnly should be false")
+	}
 	if AdmiralEndpoint() != "http://www.vmware.com" {
 		t.Errorf("Unexpected admiral endpoint: %s", AdmiralEndpoint())
 	}
@@ -182,4 +196,12 @@ func TestConfig(t *testing.T) {
 	assert.Equal("http://myjob:8888", InternalJobServiceURL())
 	assert.Equal("http://myui:8888/service/token", InternalTokenServiceEndpoint())
 
+}
+
+func currPath() string {
+	_, f, _, ok := runtime.Caller(0)
+	if !ok {
+		panic("Failed to get current directory")
+	}
+	return path.Dir(f)
 }

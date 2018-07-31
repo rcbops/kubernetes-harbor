@@ -20,6 +20,9 @@ import (
 
 	"github.com/stretchr/testify/assert"
 	"github.com/stretchr/testify/require"
+	"github.com/vmware/harbor/src/common/dao"
+	"github.com/vmware/harbor/src/common/dao/project"
+	"github.com/vmware/harbor/src/common/models"
 )
 
 func TestGetRepos(t *testing.T) {
@@ -27,7 +30,7 @@ func TestGetRepos(t *testing.T) {
 	assert := assert.New(t)
 	apiTest := newHarborAPI()
 	projectID := "1"
-	keyword := "hello-world"
+	keyword := "library/hello-world"
 
 	fmt.Println("Testing Repos Get API")
 	//-------------------case 1 : response code = 200------------------------//
@@ -192,7 +195,7 @@ func TestGetReposTop(t *testing.T) {
 		assert.Equal(int(200), code, "response code should be 200")
 		if r, ok := repos.([]*repoResp); ok {
 			assert.Equal(int(1), len(r), "the length should be 1")
-			assert.Equal(r[0].Name, "library/docker", "the name of repository should be library/docker")
+			assert.Equal(r[0].Name, "library/busybox", "the name of repository should be library/busybox")
 		} else {
 			t.Error("unexpected response")
 		}
@@ -226,6 +229,24 @@ func TestPopulateAuthor(t *testing.T) {
 }
 
 func TestPutOfRepository(t *testing.T) {
+	u, err := dao.GetUser(models.User{
+		Username: projAdmin.Name,
+	})
+	if err != nil {
+		t.Errorf("Error occurred when Register user: %v", err)
+	}
+	pmid, err := project.AddProjectMember(
+		models.Member{
+			ProjectID:  1,
+			Role:       1,
+			EntityID:   int(u.UserID),
+			EntityType: "u"},
+	)
+	if err != nil {
+		t.Errorf("Error occurred when add project member: %v", err)
+	}
+	defer project.DeleteProjectMemberByID(pmid)
+
 	base := "/api/repositories/"
 	desc := struct {
 		Description string `json:"description"`
@@ -307,7 +328,7 @@ func TestPutOfRepository(t *testing.T) {
 
 	// verify that the description is changed
 	repositories := []*repoResp{}
-	err := handleAndParse(&testingRequest{
+	err = handleAndParse(&testingRequest{
 		method: http.MethodGet,
 		url:    base,
 		queryStruct: struct {

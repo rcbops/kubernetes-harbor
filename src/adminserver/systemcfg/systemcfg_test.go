@@ -124,8 +124,86 @@ func TestLoadFromEnv(t *testing.T) {
 	assert.Equal(t, extEndpoint, cfgs[common.ExtEndpoint])
 	assert.Equal(t, "ldap_url", cfgs[common.LDAPURL])
 	assert.Equal(t, true, cfgs[common.LDAPVerifyCert])
+
 }
 
+func TestIsLoadAll(t *testing.T) {
+	os.Clearenv()
+	if err := os.Setenv("RELOAD_KEY", "123456"); err != nil {
+		t.Fatalf("failed to set env: %v", err)
+	}
+	if err := os.Setenv("RESET", "True"); err != nil {
+		t.Fatalf("failed to set env: %v", err)
+	}
+	cfg1 := map[string]interface{}{common.ReloadKey: "123456"}
+	cfg2 := map[string]interface{}{common.ReloadKey: "654321"}
+	assert.False(t, isLoadAll(cfg1))
+	assert.True(t, isLoadAll(cfg2))
+}
+
+func TestLoadFromEnvWithReloadConfigInvalidSkipPattern(t *testing.T) {
+	os.Clearenv()
+	ldapURL := "ldap://ldap.com"
+	extEndpoint := "http://harbor.com"
+	cfgsReload := map[string]interface{}{
+		common.LDAPURL: "ldap_url",
+	}
+	if err := os.Setenv("LDAP_URL", ldapURL); err != nil {
+		t.Fatalf("failed to set env: %v", err)
+	}
+	if err := os.Setenv("EXT_ENDPOINT", extEndpoint); err != nil {
+		t.Fatalf("failed to set env: %v", err)
+	}
+
+	if err := os.Setenv("LDAP_VERIFY_CERT", "false"); err != nil {
+		t.Fatalf("failed to set env: %v", err)
+	}
+
+	if err := os.Setenv("SKIP_RELOAD_ENV_PATTERN", "a(b"); err != nil {
+		t.Fatalf("failed to set env: %v", err)
+	}
+	err := LoadFromEnv(cfgsReload, true)
+	if err != nil {
+		t.Fatalf("failed to load From env: %v", err)
+	}
+	assert.Equal(t, ldapURL, cfgsReload[common.LDAPURL])
+
+	os.Clearenv()
+
+}
+
+func TestLoadFromEnvWithReloadConfigSkipPattern(t *testing.T) {
+	os.Clearenv()
+	ldapURL := "ldap://ldap.com"
+	extEndpoint := "http://harbor.com"
+	cfgsReload := map[string]interface{}{
+		common.LDAPURL: "ldap_url",
+	}
+	if err := os.Setenv("LDAP_URL", ldapURL); err != nil {
+		t.Fatalf("failed to set env: %v", err)
+	}
+	if err := os.Setenv("EXT_ENDPOINT", extEndpoint); err != nil {
+		t.Fatalf("failed to set env: %v", err)
+	}
+
+	if err := os.Setenv("LDAP_VERIFY_CERT", "false"); err != nil {
+		t.Fatalf("failed to set env: %v", err)
+	}
+	if err := os.Setenv("SKIP_RELOAD_ENV_PATTERN", "^LDAP.*"); err != nil {
+		t.Fatalf("failed to set env: %v", err)
+	}
+	if err := os.Setenv("RESET", "true"); err != nil {
+		t.Fatalf("failed to set env: %v", err)
+	}
+	err := LoadFromEnv(cfgsReload, false)
+	if err != nil {
+		t.Fatalf("failed to load From env: %v", err)
+	}
+	assert.Equal(t, "ldap_url", cfgsReload[common.LDAPURL]) //env value ignored
+
+	os.Clearenv()
+
+}
 func TestGetDatabaseFromCfg(t *testing.T) {
 	cfg := map[string]interface{}{
 		common.DatabaseType:  "mysql",
@@ -180,6 +258,34 @@ func TestValidLdapScope(t *testing.T) {
 			t.Fatalf("Failed to update ldapScope expected %v, actual %v at index %v", item.ldapScopeResult, item.config[ldapScopeKey], i)
 		}
 
+	}
+
+}
+func Test_AddMissingKey(t *testing.T) {
+
+	cfg := map[string]interface{}{
+		common.LDAPURL:        "sampleurl",
+		common.EmailPort:      555,
+		common.LDAPVerifyCert: true,
+	}
+
+	type args struct {
+		cfg map[string]interface{}
+	}
+	tests := []struct {
+		name string
+		args args
+	}{
+		{"Add default value", args{cfg}},
+	}
+	for _, tt := range tests {
+		t.Run(tt.name, func(t *testing.T) {
+			AddMissedKey(tt.args.cfg)
+		})
+	}
+
+	if _, ok := cfg[common.LDAPBaseDN]; !ok {
+		t.Errorf("Can not found default value for %v", common.LDAPBaseDN)
 	}
 
 }

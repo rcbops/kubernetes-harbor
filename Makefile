@@ -85,9 +85,14 @@ BUILDBIN=false
 MIGRATORFLAG=false
 
 # version prepare
+# for docker image tag
 VERSIONTAG=dev
+# for harbor package name
+PKGVERSIONTAG=dev
+# for harbor about dialog
+UIVERSIONTAG=dev
 VERSIONFILEPATH=$(CURDIR)
-VERSIONFILENAME=VERSION
+VERSIONFILENAME=UIVERSION
 
 #versions
 REGISTRYVERSION=v2.6.2
@@ -95,9 +100,10 @@ NGINXVERSION=$(VERSIONTAG)
 PHOTONVERSION=1.0
 NOTARYVERSION=v0.5.1
 MARIADBVERSION=$(VERSIONTAG)
-CLAIRVERSION=v2.0.1
+CLAIRVERSION=v2.0.4
 CLAIRDBVERSION=$(VERSIONTAG)
-MIGRATORVERSION=1.4
+MIGRATORVERSION=v1.5.0
+REDISVERSION=$(VERSIONTAG)
 
 #clarity parameters
 CLARITYIMAGE=vmware/harbor-clarity-ui-builder[:tag]
@@ -203,19 +209,21 @@ DOCKERSAVE_PARA=$(DOCKERIMAGENAME_ADMINSERVER):$(VERSIONTAG) \
 		$(DOCKERIMAGENAME_LOG):$(VERSIONTAG) \
 		$(DOCKERIMAGENAME_DB):$(VERSIONTAG) \
 		$(DOCKERIMAGENAME_JOBSERVICE):$(VERSIONTAG) \
+		vmware/redis-photon:$(REDISVERSION) \
 		vmware/nginx-photon:$(NGINXVERSION) vmware/registry-photon:$(REGISTRYVERSION)-$(VERSIONTAG) \
 		vmware/photon:$(PHOTONVERSION)
-PACKAGE_OFFLINE_PARA=-zcvf harbor-offline-installer-$(VERSIONTAG).tgz \
+PACKAGE_OFFLINE_PARA=-zcvf harbor-offline-installer-$(PKGVERSIONTAG).tgz \
 		          $(HARBORPKG)/common/templates $(HARBORPKG)/$(DOCKERIMGFILE).$(VERSIONTAG).tar.gz \
 				  $(HARBORPKG)/prepare $(HARBORPKG)/NOTICE \
 				  $(HARBORPKG)/LICENSE $(HARBORPKG)/install.sh \
 				  $(HARBORPKG)/harbor.cfg $(HARBORPKG)/$(DOCKERCOMPOSEFILENAME) \
-				  $(HARBORPKG)/ha
-PACKAGE_ONLINE_PARA=-zcvf harbor-online-installer-$(VERSIONTAG).tgz \
+				  $(HARBORPKG)/open_source_license $(HARBORPKG)/ha
+PACKAGE_ONLINE_PARA=-zcvf harbor-online-installer-$(PKGVERSIONTAG).tgz \
 		          $(HARBORPKG)/common/templates $(HARBORPKG)/prepare \
 				  $(HARBORPKG)/LICENSE $(HARBORPKG)/NOTICE \
 				  $(HARBORPKG)/install.sh $(HARBORPKG)/$(DOCKERCOMPOSEFILENAME) \
-				  $(HARBORPKG)/harbor.cfg $(HARBORPKG)/ha
+				  $(HARBORPKG)/harbor.cfg $(HARBORPKG)/ha \
+				  $(HARBORPKG)/open_source_license
 DOCKERCOMPOSE_LIST=-f $(DOCKERCOMPOSEFILEPATH)/$(DOCKERCOMPOSEFILENAME)
 
 ifeq ($(NOTARYFLAG), true)
@@ -232,11 +240,11 @@ ifeq ($(CLAIRFLAG), true)
 	DOCKERCOMPOSE_LIST+= -f $(DOCKERCOMPOSEFILEPATH)/$(DOCKERCOMPOSECLAIRFILENAME)
 endif
 ifeq ($(MIGRATORFLAG), true)
-	DOCKERSAVE_PARA+= vmware/harbor-db-migrator:$(MIGRATORVERSION)
+	DOCKERSAVE_PARA+= vmware/harbor-migrator:$(MIGRATORVERSION)
 endif
 
 version:
-	@printf $(VERSIONTAG) > $(VERSIONFILEPATH)/$(VERSIONFILENAME);
+	@printf $(UIVERSIONTAG) > $(VERSIONFILEPATH)/$(VERSIONFILENAME);
 
 check_environment:
 	@$(MAKEPATH)/$(CHECKENVCMD)
@@ -254,17 +262,17 @@ compile_golangimage: compile_clarity
 	@echo "compiling binary for adminserver (golang image)..."
 	@echo $(GOBASEPATH)
 	@echo $(GOBUILDPATH)
-	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_ADMINSERVER) $(GOBUILDIMAGE) $(GOIMAGEBUILD) -v -o $(GOBUILDMAKEPATH_ADMINSERVER)/$(ADMINSERVERBINARYNAME)
+	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_ADMINSERVER) $(GOBUILDIMAGE) $(GOIMAGEBUILD) -o $(GOBUILDMAKEPATH_ADMINSERVER)/$(ADMINSERVERBINARYNAME)
 	@echo "Done."
 
 	@echo "compiling binary for ui (golang image)..."
 	@echo $(GOBASEPATH)
 	@echo $(GOBUILDPATH)
-	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_UI) $(GOBUILDIMAGE) $(GOIMAGEBUILD) -v -o $(GOBUILDMAKEPATH_UI)/$(UIBINARYNAME)
+	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_UI) $(GOBUILDIMAGE) $(GOIMAGEBUILD) -o $(GOBUILDMAKEPATH_UI)/$(UIBINARYNAME)
 	@echo "Done."
 
 	@echo "compiling binary for jobservice (golang image)..."
-	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_JOBSERVICE) $(GOBUILDIMAGE) $(GOIMAGEBUILD) -v -o $(GOBUILDMAKEPATH_JOBSERVICE)/$(JOBSERVICEBINARYNAME)
+	@$(DOCKERCMD) run --rm -v $(BUILDPATH):$(GOBUILDPATH) -w $(GOBUILDPATH_JOBSERVICE) $(GOBUILDIMAGE) $(GOIMAGEBUILD) -o $(GOBUILDMAKEPATH_JOBSERVICE)/$(JOBSERVICEBINARYNAME)
 	@echo "Done."
 
 compile:check_environment compile_golangimage
@@ -277,7 +285,7 @@ build:
 	make -f $(MAKEFILEPATH_PHOTON)/Makefile build -e DEVFLAG=$(DEVFLAG) -e MARIADBVERSION=$(MARIADBVERSION) \
 	 -e REGISTRYVERSION=$(REGISTRYVERSION) -e NGINXVERSION=$(NGINXVERSION) -e NOTARYVERSION=$(NOTARYVERSION) \
 	 -e CLAIRVERSION=$(CLAIRVERSION) -e CLAIRDBVERSION=$(CLAIRDBVERSION) -e VERSIONTAG=$(VERSIONTAG) \
-	 -e BUILDBIN=$(BUILDBIN)
+	 -e BUILDBIN=$(BUILDBIN) -e REDISVERSION=$(REDISVERSION)
 
 modify_composefile: modify_composefile_notary modify_composefile_clair
 	@echo "preparing docker-compose file..."
@@ -289,6 +297,7 @@ modify_composefile: modify_composefile_notary modify_composefile_clair
 	@$(SEDCMD) -i 's/__reg_version__/$(REGISTRYVERSION)-$(VERSIONTAG)/g' $(DOCKERCOMPOSEFILEPATH)/ha/$(DOCKERCOMPOSEFILENAME)
 	@$(SEDCMD) -i 's/__nginx_version__/$(NGINXVERSION)/g' $(DOCKERCOMPOSEFILEPATH)/$(DOCKERCOMPOSEFILENAME)
 	@$(SEDCMD) -i 's/__nginx_version__/$(NGINXVERSION)/g' $(DOCKERCOMPOSEFILEPATH)/ha/$(DOCKERCOMPOSEFILENAME)
+	@$(SEDCMD) -i 's/__redis_version__/$(REDISVERSION)/g' $(DOCKERCOMPOSEFILEPATH)/$(DOCKERCOMPOSEFILENAME)
 
 modify_composefile_notary:
 	@echo "preparing docker-compose notary file..."
@@ -324,6 +333,7 @@ package_online: modify_composefile
 		$(HARBORPKG)/ha/docker-compose.yml ; \
 	fi
 	@cp LICENSE $(HARBORPKG)/LICENSE
+	@cp open_source_license $(HARBORPKG)/open_source_license
 	@cp NOTICE $(HARBORPKG)/NOTICE
 
 	@$(TARCMD) $(PACKAGE_ONLINE_PARA)
@@ -334,12 +344,13 @@ package_offline: compile version build modify_sourcefiles modify_composefile
 	@echo "packing offline package ..."
 	@cp -r make $(HARBORPKG)
 	@cp LICENSE $(HARBORPKG)/LICENSE
+	@cp open_source_license $(HARBORPKG)/open_source_license
 	@cp NOTICE $(HARBORPKG)/NOTICE
 	@cp $(HARBORPKG)/photon/db/registry.sql $(HARBORPKG)/ha/
 
 	@if [ "$(MIGRATORFLAG)" = "true" ] ; then \
-		echo "pulling DB migrator..."; \
-		$(DOCKERPULL) vmware/harbor-db-migrator:$(MIGRATORVERSION); \
+		echo "pulling Harbor migrator..."; \
+		$(DOCKERPULL) vmware/harbor-migrator:$(MIGRATORVERSION); \
 	fi
 
 	@echo "saving harbor docker image"

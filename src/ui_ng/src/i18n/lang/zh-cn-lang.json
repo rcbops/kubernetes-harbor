@@ -178,6 +178,7 @@
         "REPLICATION": "复制",
         "USERS": "成员",
         "LOGS": "日志",
+        "LABELS": "标签",
         "PROJECTS": "项目",
         "CONFIG": "配置管理"
     },
@@ -322,8 +323,8 @@
         "PLACEHOLDER": "未发现任何复制规则!",
         "JOB_PLACEHOLDER": "未发现任何复制任务!",
         "JOB_LOG_VIEWER": "查看复制任务日志",
-        "NO_ENDPOINT_INFO": "请先添加目标",
-        "NO_PROJECT_INFO": "请先去项目添加一个新的项目名称",
+        "NO_ENDPOINT_INFO": "请先添加一个目标",
+        "NO_PROJECT_INFO": "请先添加一个项目名称",
         "SOURCE_IMAGES_FILTER": "源镜像过滤器",
         "SCHEDULE": "定时",
         "MANUAL": "手动",
@@ -335,7 +336,7 @@
         "TARGETS":"目标",
         "MODE": "模式",
         "TRIGGER_MODE": "触发模式",
-        "SOURCE": "源",
+        "SOURCE_PROJECT": "源项目",
         "REPLICATE": "复制",
         "DELETE_REMOTE_IMAGES":"删除本地镜像时同时也删除远程的镜像。",
         "REPLICATE_IMMEDIATE":"立即复制现有的镜像。",
@@ -389,6 +390,7 @@
         "DELETION_SUMMARY_TAG": "确认删除镜像标签 {{param}}?",
         "DELETION_TITLE_TAG_DENIED": "已签名的镜像不能被删除",
         "DELETION_SUMMARY_TAG_DENIED": "要删除此镜像标签必须首先从Notary中删除。\n请执行如下Notary命令删除:\n{{param}}",
+        "TAGS_NO_DELETE": "在只读模式下删除是被禁止的",
         "FILTER_FOR_REPOSITORIES": "过滤镜像仓库",
         "TAG": "标签",
         "SIZE": "大小",
@@ -403,6 +405,7 @@
         "REPOSITORIES": "镜像仓库",
         "OF": "共计",
         "ITEMS": "条记录",
+        "NO_ITEMS": "没有记录",
         "POP_REPOS": "受欢迎的镜像仓库",
         "DELETED_REPO_SUCCESS": "成功删除镜像仓库。",
         "DELETED_TAG_SUCCESS": "成功删除镜像标签。",
@@ -411,7 +414,14 @@
         "PLACEHOLDER": "未发现任何镜像库!",
         "INFO": "描述信息",
         "NO_INFO": "此镜像仓库没有描述信息",
-        "IMAGE": "镜像"
+        "IMAGE": "镜像",
+        "LABELS": "标签",
+        "ADD_TO_IMAGE": "添加标签到此镜像",
+        "ADD_LABELS": "添加标签",
+        "FILTER_BY_LABEL": "过滤标签",
+        "ACTION": "操作",
+        "DEPLOY": "部署",
+        "ADDITIONAL_INFO": "添加信息"
     },
     "ALERT": {
         "FORM_CHANGE_CONFIRMATION": "表单内容改变，确认是否取消?"
@@ -433,6 +443,9 @@
         "AUTH": "认证模式",
         "REPLICATION": "复制",
         "EMAIL": "邮箱",
+        "LABEL": "标签",
+        "REPOSITORY": "仓库",
+        "REPO_READ_ONLY": "仓库只读",
         "SYSTEM": "系统设置",
         "VULNERABILITY": "漏洞",
         "CONFIRM_TITLE": "确认取消",
@@ -475,7 +488,8 @@
             "PRO_CREATION_RESTRICTION": "用来确定哪些用户有权限创建项目，默认为’所有人‘，设置为’仅管理员‘则只有管理员可以创建项目。",
             "ROOT_CERT_DOWNLOAD": "下载镜像库根证书.",
             "SCANNING_POLICY": "基于不同需求设置镜像扫描策略。‘无’：不设置任何策略；‘每日定时’：每天在设置的时间定时执行扫描。",
-            "VERIFY_CERT": "检查来自LDAP服务端的证书"
+            "VERIFY_CERT": "检查来自LDAP服务端的证书",
+            "READONLY_TOOLTIP": "选中，表示正在维护状态，不可删除仓库及标签,也不可以推送镜像。"
         },
         "LDAP": {
             "URL": "LDAP URL",
@@ -608,9 +622,28 @@
         "OS": "操作系统",
         "SCAN_COMPLETION_TIME": "扫描完成时间",
         "IMAGE_VULNERABILITIES": "镜像缺陷",
+        "LEVEL_VULNERABILITIES": "缺陷等级",
         "PLACEHOLDER": "未发现任何标签!",
         "COPY_ERROR": "拷贝失败，请尝试手动拷贝。",
-        "FILTER_FOR_TAGS": "过滤项目"
+        "FILTER_FOR_TAGS": "过滤项目",
+        "AUTHOR": "作者",
+        "LABELS": "标签"
+    },
+    "LABEL": {
+        "LABEL": "标签",
+        "DESCRIPTION": "描述",
+        "CREATION_TIME": "创建时间",
+        "NEW_LABEL": "新建标签",
+        "EDIT": "编辑",
+        "DELETE": "删除",
+        "LABEL_NAME": "标签名字",
+        "COLOR": "颜色",
+        "FILTER_Label_PLACEHOLDER": "过滤标签",
+        "NO_LABELS": "无标签",
+        "DELETION_TITLE_TARGET":"删除标签确认",
+        "DELETION_SUMMARY_TARGET": "确认删除标签 {{param}}?",
+        "PLACEHOLDER": "未发现任何标签!",
+        "NAME_ALREADY_EXISTS": "标签名已存在。"
     },
     "WEEKLY": {
         "MONDAY": "周一",
@@ -623,6 +656,7 @@
     },
     "UNKNOWN_ERROR": "发生未知错误,请稍后再试。",
     "UNAUTHORIZED_ERROR": "会话无效或者已经过期, 请重新登录以继续。",
+    "REPO_READ_ONLY": "Harbor被设置为只读模式，在此模式下，不能删除仓库、标签及推送镜像。",
     "FORBIDDEN_ERROR": "当前操作被禁止，请确认你有合法的权限。",
     "GENERAL_ERROR": "调用后台服务时出现错误: {{param}}。",
     "BAD_REQUEST_ERROR": "错误请求, 操作无法完成。",

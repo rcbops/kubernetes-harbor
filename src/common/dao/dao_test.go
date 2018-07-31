@@ -49,7 +49,7 @@ func cleanByUser(username string) {
 
 	err = execUpdate(o, `delete 
 		from project_member 
-		where user_id = (
+		where entity_id = (
 			select user_id
 			from user
 			where username = ?
@@ -635,33 +635,8 @@ func TestGetProjectById(t *testing.T) {
 	}
 }
 
-func TestGetUserByProject(t *testing.T) {
-	pid := currentProject.ProjectID
-	u1 := models.User{
-		Username: "Tester",
-	}
-	u2 := models.User{
-		Username: "nononono",
-	}
-	users, err := GetUserByProject(pid, u1)
-	if err != nil {
-		t.Errorf("Error happened in GetUserByProject: %v, project Id: %d, user: %+v", err, pid, u1)
-	}
-	if len(users) != 1 {
-		t.Errorf("unexpected length of user list, expected: 1, the users list: %+v", users)
-	}
-	users, err = GetUserByProject(pid, u2)
-	if err != nil {
-		t.Errorf("Error happened in GetUserByProject: %v, project Id: %d, user: %+v", err, pid, u2)
-	}
-	if len(users) != 0 {
-		t.Errorf("unexpected length of user list, expected: 0, the users list: %+v", users)
-	}
-
-}
-
 func TestGetUserProjectRoles(t *testing.T) {
-	r, err := GetUserProjectRoles(currentUser.UserID, currentProject.ProjectID)
+	r, err := GetUserProjectRoles(currentUser.UserID, currentProject.ProjectID, common.UserMember)
 	if err != nil {
 		t.Errorf("Error happened in GetUserProjectRole: %v, userID: %+v, project Id: %d", err, currentUser.UserID, currentProject.ProjectID)
 	}
@@ -697,61 +672,6 @@ func TestGetProjects(t *testing.T) {
 	}
 	if projects[1].Name != projectName {
 		t.Errorf("Expected project name in the list: %s, actual: %s", projectName, projects[1].Name)
-	}
-}
-
-func TestAddProjectMember(t *testing.T) {
-	err := AddProjectMember(currentProject.ProjectID, 1, models.DEVELOPER)
-	if err != nil {
-		t.Errorf("Error occurred in AddProjectMember: %v", err)
-	}
-
-	roles, err := GetUserProjectRoles(1, currentProject.ProjectID)
-	if err != nil {
-		t.Errorf("Error occurred in GetUserProjectRoles: %v", err)
-	}
-
-	flag := false
-	for _, role := range roles {
-		if role.Name == "developer" {
-			flag = true
-			break
-		}
-	}
-
-	if !flag {
-		t.Errorf("the user which ID is 1 does not have developer privileges")
-	}
-}
-
-func TestUpdateProjectMember(t *testing.T) {
-	err := UpdateProjectMember(currentProject.ProjectID, 1, models.GUEST)
-	if err != nil {
-		t.Errorf("Error occurred in UpdateProjectMember: %v", err)
-	}
-	roles, err := GetUserProjectRoles(1, currentProject.ProjectID)
-	if err != nil {
-		t.Errorf("Error occurred in GetUserProjectRoles: %v", err)
-	}
-	if roles[0].Name != "guest" {
-		t.Errorf("The user with ID 1 is not guest role after update, the acutal role: %s", roles[0].Name)
-	}
-
-}
-
-func TestDeleteProjectMember(t *testing.T) {
-	err := DeleteProjectMember(currentProject.ProjectID, 1)
-	if err != nil {
-		t.Errorf("Error occurred in DeleteProjectMember: %v", err)
-	}
-
-	roles, err := GetUserProjectRoles(1, currentProject.ProjectID)
-	if err != nil {
-		t.Errorf("Error occurred in GetUserProjectRoles: %v", err)
-	}
-
-	if len(roles) != 0 {
-		t.Errorf("delete record failed from table project_member")
 	}
 }
 
@@ -1079,6 +999,16 @@ func TestAddRepJob(t *testing.T) {
 	}
 }
 
+func TestSetRepJobUUID(t *testing.T) {
+	uuid := "u-rep-job-uuid"
+	assert := assert.New(t)
+	err := SetRepJobUUID(jobID, uuid)
+	assert.Nil(err)
+	j, err := GetRepJob(jobID)
+	assert.Nil(err)
+	assert.Equal(uuid, j.UUID)
+}
+
 func TestUpdateRepJobStatus(t *testing.T) {
 	err := UpdateRepJobStatus(jobID, models.JobFinished)
 	if err != nil {
@@ -1128,45 +1058,74 @@ func TestGetRepPolicyByProject(t *testing.T) {
 	}
 }
 
-func TestGetRepJobByPolicy(t *testing.T) {
-	jobs, err := GetRepJobByPolicy(999)
-	if err != nil {
-		t.Errorf("Error occurred in GetRepJobByPolicy: %v, policy ID: %d", err, 999)
-		return
-	}
-	if len(jobs) > 0 {
-		t.Errorf("Unexpected length of jobs, expected: 0, in fact: %d", len(jobs))
-		return
-	}
-	jobs, err = GetRepJobByPolicy(policyID)
-	if err != nil {
-		t.Errorf("Error occurred in GetRepJobByPolicy: %v, policy ID: %d", err, policyID)
-		return
-	}
-	if len(jobs) != 1 {
-		t.Errorf("Unexpected length of jobs, expected: 1, in fact: %d", len(jobs))
-		return
-	}
-	if jobs[0].ID != jobID {
-		t.Errorf("Unexpected job ID in the result, expected: %d, in fact: %d", jobID, jobs[0].ID)
-		return
-	}
-}
+func TestGetRepJobs(t *testing.T) {
+	var policyID int64 = 10000
+	repository := "repository_for_test_get_rep_jobs"
+	operation := "operation_for_test"
+	status := "status_for_test"
+	now := time.Now().Add(1 * time.Minute)
+	id, err := AddRepJob(models.RepJob{
+		PolicyID:     policyID,
+		Repository:   repository,
+		Operation:    operation,
+		Status:       status,
+		CreationTime: now,
+		UpdateTime:   now,
+	})
+	require.Nil(t, err)
+	defer DeleteRepJob(id)
 
-func TestFilterRepJobs(t *testing.T) {
-	jobs, _, err := FilterRepJobs(policyID, "", []string{}, nil, nil, 1000, 0)
-	if err != nil {
-		t.Errorf("Error occurred in FilterRepJobs: %v, policy ID: %d", err, policyID)
-		return
+	// no query
+	jobs, err := GetRepJobs()
+	require.Nil(t, err)
+	found := false
+	for _, job := range jobs {
+		if job.ID == id {
+			found = true
+			break
+		}
 	}
-	if len(jobs) != 1 {
-		t.Errorf("Unexpected length of jobs, expected: 1, in fact: %d", len(jobs))
-		return
-	}
-	if jobs[0].ID != jobID {
-		t.Errorf("Unexpected job ID in the result, expected: %d, in fact: %d", jobID, jobs[0].ID)
-		return
-	}
+	assert.True(t, found)
+
+	// query by policy ID
+	jobs, err = GetRepJobs(&models.RepJobQuery{
+		PolicyID: policyID,
+	})
+	require.Nil(t, err)
+	require.Equal(t, 1, len(jobs))
+	assert.Equal(t, id, jobs[0].ID)
+
+	// query by repository
+	jobs, err = GetRepJobs(&models.RepJobQuery{
+		Repository: repository,
+	})
+	require.Nil(t, err)
+	require.Equal(t, 1, len(jobs))
+	assert.Equal(t, id, jobs[0].ID)
+
+	// query by operation
+	jobs, err = GetRepJobs(&models.RepJobQuery{
+		Operations: []string{operation},
+	})
+	require.Nil(t, err)
+	require.Equal(t, 1, len(jobs))
+	assert.Equal(t, id, jobs[0].ID)
+
+	// query by status
+	jobs, err = GetRepJobs(&models.RepJobQuery{
+		Statuses: []string{status},
+	})
+	require.Nil(t, err)
+	require.Equal(t, 1, len(jobs))
+	assert.Equal(t, id, jobs[0].ID)
+
+	// query by creation time
+	jobs, err = GetRepJobs(&models.RepJobQuery{
+		StartTime: &now,
+	})
+	require.Nil(t, err)
+	require.Equal(t, 1, len(jobs))
+	assert.Equal(t, id, jobs[0].ID)
 }
 
 func TestDeleteRepJob(t *testing.T) {
@@ -1184,57 +1143,6 @@ func TestDeleteRepJob(t *testing.T) {
 	if j != nil {
 		t.Errorf("Able to find rep job after deletion, id: %d", jobID)
 		return
-	}
-}
-
-func TestGetRepoJobToStop(t *testing.T) {
-	jobs := [...]models.RepJob{
-		models.RepJob{
-			Repository: "library/ubuntu",
-			PolicyID:   policyID,
-			Operation:  "transfer",
-			Status:     models.JobRunning,
-		},
-		models.RepJob{
-			Repository: "library/ubuntu",
-			PolicyID:   policyID,
-			Operation:  "transfer",
-			Status:     models.JobFinished,
-		},
-		models.RepJob{
-			Repository: "library/ubuntu",
-			PolicyID:   policyID,
-			Operation:  "transfer",
-			Status:     models.JobCanceled,
-		},
-	}
-	var err error
-	var i int64
-	var ids []int64
-	for _, j := range jobs {
-		i, err = AddRepJob(j)
-		ids = append(ids, i)
-		if err != nil {
-			log.Errorf("Failed to add Job: %+v, error: %v", j, err)
-			return
-		}
-	}
-	res, err := GetRepJobToStop(policyID)
-	if err != nil {
-		log.Errorf("Failed to Get Jobs, error: %v", err)
-		return
-	}
-	//time.Sleep(15 * time.Second)
-	if len(res) != 1 {
-		log.Errorf("Expected length of stoppable jobs, expected:1, in fact: %d", len(res))
-		return
-	}
-	for _, id := range ids {
-		err = DeleteRepJob(id)
-		if err != nil {
-			log.Errorf("Failed to delete job, id: %d, error: %v", id, err)
-			return
-		}
 	}
 }
 
@@ -1289,77 +1197,6 @@ func TestDeleteRepPolicy(t *testing.T) {
 	}
 	if p != nil && p.Deleted != 1 {
 		t.Errorf("Able to find rep policy after deletion, id: %d", policyID)
-	}
-}
-
-func TestResetRepJobs(t *testing.T) {
-
-	job1 := models.RepJob{
-		Repository: "library/ubuntua",
-		PolicyID:   policyID,
-		Operation:  "transfer",
-		Status:     models.JobRunning,
-	}
-	job2 := models.RepJob{
-		Repository: "library/ubuntub",
-		PolicyID:   policyID,
-		Operation:  "transfer",
-		Status:     models.JobCanceled,
-	}
-	id1, err := AddRepJob(job1)
-	if err != nil {
-		t.Errorf("Failed to add job: %+v, error: %v", job1, err)
-		return
-	}
-	id2, err := AddRepJob(job2)
-	if err != nil {
-		t.Errorf("Failed to add job: %+v, error: %v", job2, err)
-		return
-	}
-	err = ResetRunningJobs()
-	if err != nil {
-		t.Errorf("Failed to reset running jobs, error: %v", err)
-	}
-	j1, err := GetRepJob(id1)
-	if err != nil {
-		t.Errorf("Failed to get rep job, id: %d, error: %v", id1, err)
-		return
-	}
-	if j1.Status != models.JobPending {
-		t.Errorf("The rep job: %d, status should be Pending, but infact: %s", id1, j1.Status)
-		return
-	}
-	j2, err := GetRepJob(id2)
-	if err != nil {
-		t.Errorf("Failed to get rep job, id: %d, error: %v", id2, err)
-		return
-	}
-	if j2.Status == models.JobPending {
-		t.Errorf("The rep job: %d, status should be Canceled, but infact: %s", id2, j2.Status)
-		return
-	}
-}
-
-func TestGetJobByStatus(t *testing.T) {
-	r1, err := GetRepJobByStatus(models.JobPending, models.JobRunning)
-	if err != nil {
-		t.Errorf("Failed to run GetRepJobByStatus, error: %v", err)
-	}
-	if len(r1) != 1 {
-		t.Errorf("Unexpected length of result, expected 1, but in fact:%d", len(r1))
-		return
-	}
-
-	r2, err := GetRepJobByStatus(models.JobPending, models.JobCanceled)
-	if err != nil {
-		t.Errorf("Failed to run GetRepJobByStatus, error: %v", err)
-	}
-	if len(r2) != 2 {
-		t.Errorf("Unexpected length of result, expected 2, but in fact:%d", len(r2))
-		return
-	}
-	for _, j := range r2 {
-		DeleteRepJob(j.ID)
 	}
 }
 
@@ -1496,6 +1333,21 @@ func TestGetScanJobs(t *testing.T) {
 	assert.Nil(err)
 	err = ClearTable(models.ScanJobTable)
 	assert.Nil(err)
+}
+
+func TestSetScanJobUUID(t *testing.T) {
+	uuid := "u-scan-job-uuid"
+	assert := assert.New(t)
+	id, err := AddScanJob(sj1)
+	assert.Nil(err)
+	err = SetScanJobUUID(id, uuid)
+	assert.Nil(err)
+	j, err := GetScanJob(id)
+	assert.Nil(err)
+	assert.Equal(uuid, j.UUID)
+	err = ClearTable(models.ScanJobTable)
+	assert.Nil(err)
+
 }
 
 func TestUpdateScanJobStatus(t *testing.T) {

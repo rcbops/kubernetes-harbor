@@ -50,9 +50,8 @@ import { LeavingConfigRouteDeactivate } from './shared/route/leaving-config-deac
 import { MemberGuard } from './shared/route/member-guard-activate.service';
 
 import { TagDetailPageComponent } from './repository/tag-detail/tag-detail-page.component';
-import { ReplicationRuleComponent} from "./replication/replication-rule/replication-rule.component";
-import {LeavingNewRuleRouteDeactivate} from "./shared/route/leaving-new-rule-deactivate.service";
 import { LeavingRepositoryRouteDeactivate } from './shared/route/leaving-repository-deactivate.service';
+import {ProjectLabelComponent} from "./project/project-label/project-label.component";
 
 const harborRoutes: Routes = [
   { path: '', redirectTo: 'harbor', pathMatch: 'full' },
@@ -93,20 +92,6 @@ const harborRoutes: Routes = [
         canActivateChild: [SystemAdminGuard],
       },
       {
-          path: 'replications/:id/rule',
-          component: ReplicationRuleComponent,
-          canActivate: [SystemAdminGuard],
-          canActivateChild: [SystemAdminGuard],
-          canDeactivate: [LeavingNewRuleRouteDeactivate]
-      },
-      {
-        path: 'replications/new-rule',
-        component: ReplicationRuleComponent,
-        canActivate: [SystemAdminGuard],
-        canActivateChild: [SystemAdminGuard],
-        canDeactivate: [LeavingNewRuleRouteDeactivate]
-      },
-      {
         path: 'tags/:id/:repo',
         component: TagRepositoryComponent,
         canActivate: [MemberGuard],
@@ -122,6 +107,14 @@ const harborRoutes: Routes = [
         resolve: {
           projectResolver: ProjectRoutingResolver
         }
+      },
+      {
+        path: 'projects/:id/repositories/:repo/tags/:tag',
+        component: TagDetailPageComponent,
+        canActivate: [MemberGuard],
+        resolve: {
+          projectResolver: ProjectRoutingResolver
+        },
       },
       {
         path: 'projects/:id',
@@ -140,10 +133,6 @@ const harborRoutes: Routes = [
             component: TagRepositoryComponent,
           },
           {
-            path: 'repositories/:repo/tags/:tag',
-            component: TagDetailPageComponent
-          },
-          {
             path: 'replications',
             component: ReplicationPageComponent,
           },
@@ -154,6 +143,9 @@ const harborRoutes: Routes = [
           {
             path: 'logs',
             component: AuditLogComponent
+          },{
+            path: 'labels',
+            component: ProjectLabelComponent
           },
           {
             path: 'configs',

@@ -30,6 +30,7 @@ export class TagRepositoryComponent implements OnInit {
   projectId: number;
   repoName: string;
   hasProjectAdminRole: boolean = false;
+  isGuest: boolean;
   registryUrl: string;
 
   @ViewChild(RepositoryComponent)
@@ -47,11 +48,12 @@ export class TagRepositoryComponent implements OnInit {
     if (!this.projectId) {
       this.projectId = this.route.snapshot.parent.params['id'];
     };
-    // let resolverData = this.route.snapshot.parent.data;
+
     let resolverData = this.route.snapshot.data;
 
     if (resolverData) {
       this.hasProjectAdminRole = (<Project>resolverData['projectResolver']).has_project_admin_role;
+      this.isGuest = (<Project>resolverData['projectResolver']).current_user_role_id === 3;
     }
     this.repoName = this.route.snapshot.params['repo'];
 
@@ -66,6 +68,10 @@ export class TagRepositoryComponent implements OnInit {
     return this.appConfigService.getConfig().with_clair;
   }
 
+  get withAdmiral(): boolean {
+    return this.appConfigService.getConfig().with_admiral;
+  }
+
   get hasSignedIn(): boolean {
     return this.session.getCurrentUser() !== null;
   }
@@ -73,12 +79,16 @@ export class TagRepositoryComponent implements OnInit {
   hasChanges(): boolean {
     return this.repositoryComponent.hasChanges();
   }
+
   watchTagClickEvt(tagEvt: TagClickEvent): void {
     let linkUrl = ['harbor', 'projects', tagEvt.project_id, 'repositories', tagEvt.repository_name, 'tags', tagEvt.tag_name];
     this.router.navigate(linkUrl);
   }
 
-  goBack(tag: string): void {
-    this.router.navigate(["harbor", "projects", this.projectId, "repositories"]);
+  watchGoBackEvt(projectId: string| number): void {
+    this.router.navigate(["harbor", "projects", projectId, "repositories"]);
+  }
+  goProBack(): void {
+    this.router.navigate(["harbor", "projects"]);
   }
 }

@@ -82,19 +82,19 @@ insert into project (owner_id, name, creation_time, update_time) values
 (1, 'library', NOW(), NOW());
 
 create table project_member (
+ id int not null AUTO_INCREMENT,
  project_id int NOT NULL,
- user_id int NOT NULL,
+ entity_id int NOT NULL,
+ entity_type char(1) NOT NULL, ## u for user, g for user group
  role int NOT NULL,
- creation_time timestamp,
- update_time timestamp,
- PRIMARY KEY (project_id, user_id),
- FOREIGN KEY (role) REFERENCES role(role_id),
- FOREIGN KEY (project_id) REFERENCES project(project_id),
- FOREIGN KEY (user_id) REFERENCES user(user_id)
+ creation_time timestamp default CURRENT_TIMESTAMP,
+ update_time timestamp default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+ PRIMARY KEY (id),
+ CONSTRAINT unique_project_entity_type UNIQUE (project_id, entity_id, entity_type)
  );
 
-insert into project_member (project_id, user_id, role, creation_time, update_time) values
-(1, 1, 1, NOW(), NOW());
+insert into project_member (project_id, entity_id, role, entity_type) values
+(1, 1, 1, 'u');
 
 create table project_metadata (
  id int NOT NULL AUTO_INCREMENT,
@@ -111,6 +111,19 @@ create table project_metadata (
 
 insert into project_metadata (id, project_id, name, value, creation_time, update_time, deleted) values
 (1, 1, 'public', 'true', NOW(), NOW(), 0);
+
+
+
+create table user_group
+(
+id int NOT NULL AUTO_INCREMENT,
+group_name varchar(255) NOT NULL,
+group_type int default 0,
+ldap_group_dn varchar(512) NOT NULL,
+creation_time timestamp default CURRENT_TIMESTAMP,
+update_time timestamp default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+PRIMARY KEY (id)
+);
 
 create table access_log (
  log_id int NOT NULL AUTO_INCREMENT,
@@ -180,11 +193,14 @@ create table replication_job (
  repository varchar(256) NOT NULL,
  operation  varchar(64) NOT NULL,
  tags   varchar(16384),
+ #New job service only records uuid, for compatibility in this table both IDs are stored.
+ job_uuid varchar(64),
  creation_time timestamp default CURRENT_TIMESTAMP,
  update_time timestamp default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
  PRIMARY KEY (id),
  INDEX policy (policy_id),
- INDEX poid_uptime (policy_id, update_time)
+ INDEX poid_uptime (policy_id, update_time),
+ INDEX poid_status (policy_id, status)
  );
 
 create table replication_immediate_trigger (
@@ -202,11 +218,17 @@ create table img_scan_job (
  id int NOT NULL AUTO_INCREMENT,
  status varchar(64) NOT NULL,
  repository varchar(256) NOT NULL,
- tag   varchar(128) NOT NULL,
+ tag varchar(128) NOT NULL,
  digest varchar(128),
+ #New job service only records uuid, for compatibility in this table both IDs are stored.
+ job_uuid varchar(64),
  creation_time timestamp default CURRENT_TIMESTAMP,
  update_time timestamp default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
- PRIMARY KEY (id)
+ PRIMARY KEY (id),
+ INDEX idx_status (status),
+ INDEX idx_digest (digest),
+ INDEX idx_uuid (job_uuid),
+ INDEX idx_repository_tag (repository,tag)
  );
 
 create table img_scan_overview (
@@ -241,8 +263,44 @@ create table properties (
  UNIQUE (k)
  );
 
+create table harbor_label (
+ id int NOT NULL AUTO_INCREMENT,
+ name varchar(128) NOT NULL,
+ description text,
+ color varchar(16),
+# 's' for system level labels
+# 'u' for user level labels
+ level char(1) NOT NULL,
+# 'g' for global labels
+# 'p' for project labels
+ scope char(1) NOT NULL,
+ project_id int,
+ creation_time timestamp default CURRENT_TIMESTAMP,
+ update_time timestamp default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+ PRIMARY KEY(id),
+ CONSTRAINT unique_label UNIQUE (name,scope, project_id)
+ );
+
+create table harbor_resource_label (
+ id int NOT NULL AUTO_INCREMENT,
+ label_id int NOT NULL,
+# the resource_id is the ID of project when the resource_type is p
+# the resource_id is the ID of repository when the resource_type is r
+ resource_id int,
+# the resource_name is the name of image when the resource_type is i
+ resource_name varchar(256),
+# 'p' for project
+# 'r' for repository
+# 'i' for image
+ resource_type char(1) NOT NULL,
+ creation_time timestamp default CURRENT_TIMESTAMP,
+ update_time timestamp default CURRENT_TIMESTAMP on update CURRENT_TIMESTAMP,
+ PRIMARY KEY(id),
+ CONSTRAINT unique_label_resource UNIQUE (label_id,resource_id, resource_name, resource_type)
+ );
+
 CREATE TABLE IF NOT EXISTS `alembic_version` (
     `version_num` varchar(32) NOT NULL
 ) ENGINE=InnoDB DEFAULT CHARSET=utf8;
 
-insert into alembic_version values ('1.4.0');
+insert into alembic_version values ('1.5.0');

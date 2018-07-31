@@ -58,7 +58,8 @@ func (pa *RepPolicyAPI) Get() {
 	}
 
 	if policy.ID == 0 {
-		pa.CustomAbort(http.StatusNotFound, http.StatusText(http.StatusNotFound))
+		pa.HandleNotFound(fmt.Sprintf("policy %d not found", id))
+		return
 	}
 
 	if !pa.SecurityCtx.HasAllPerm(policy.ProjectIDs[0]) {
@@ -85,7 +86,8 @@ func (pa *RepPolicyAPI) List() {
 	if len(projectIDStr) > 0 {
 		projectID, err := strconv.ParseInt(projectIDStr, 10, 64)
 		if err != nil || projectID <= 0 {
-			pa.CustomAbort(http.StatusBadRequest, "invalid project ID")
+			pa.HandleBadRequest(fmt.Sprintf("invalid project ID: %s", projectIDStr))
+			return
 		}
 		queryParam.ProjectID = projectID
 	}
@@ -183,7 +185,8 @@ func (pa *RepPolicyAPI) Put() {
 	}
 
 	if originalPolicy.ID == 0 {
-		pa.CustomAbort(http.StatusNotFound, http.StatusText(http.StatusNotFound))
+		pa.HandleNotFound(fmt.Sprintf("policy %d not found", id))
+		return
 	}
 
 	policy := &api_models.ReplicationPolicy{}
@@ -246,11 +249,16 @@ func (pa *RepPolicyAPI) Delete() {
 	}
 
 	if policy.ID == 0 {
-		pa.CustomAbort(http.StatusNotFound, http.StatusText(http.StatusNotFound))
+		pa.HandleNotFound(fmt.Sprintf("policy %d not found", id))
+		return
 	}
 
-	_, count, err := dao.FilterRepJobs(id, "",
-		[]string{models.JobRunning, models.JobRetrying, models.JobPending}, nil, nil, 1, 0)
+	count, err := dao.GetTotalCountOfRepJobs(&models.RepJobQuery{
+		PolicyID: id,
+		Statuses: []string{models.JobRunning, models.JobRetrying, models.JobPending},
+		// only get the transfer and delete jobs, do not get schedule job
+		Operations: []string{models.RepOpTransfer, models.RepOpDelete},
+	})
 	if err != nil {
 		log.Errorf("failed to filter jobs of policy %d: %v", id, err)
 		pa.CustomAbort(http.StatusInternalServerError, "")
@@ -303,7 +311,10 @@ func convertFromRepPolicy(projectMgr promgr.ProjectManager, policy rep_models.Re
 	}
 
 	// TODO call the method from replication controller
-	_, errJobCount, err := dao.FilterRepJobs(policy.ID, "", []string{"error"}, nil, nil, 0, 0)
+	errJobCount, err := dao.GetTotalCountOfRepJobs(&models.RepJobQuery{
+		PolicyID: policy.ID,
+		Statuses: []string{models.JobError},
+	})
 	if err != nil {
 		return nil, err
 	}

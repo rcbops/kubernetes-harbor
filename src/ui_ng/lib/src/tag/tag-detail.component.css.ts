@@ -1,8 +1,6 @@
 export const TAG_DETAIL_STYLES: string = `
 .overview-section {
-    background-color: white;
     padding-bottom: 36px;
-    border-bottom: 1px solid #cccccc;
 }
 
 .detail-section {
@@ -15,14 +13,11 @@ export const TAG_DETAIL_STYLES: string = `
     display: inline-block;
 }
 
-.title-wrapper {
-    padding-top: 12px;
-}
-
 .tag-name {
     font-weight: 300;
     font-size: 32px;
 }
+.tag-name h2{margin-top:0;}
 
 .tag-timestamp {
     font-weight: 400;
@@ -46,12 +41,17 @@ export const TAG_DETAIL_STYLES: string = `
     cursor: pointer;
 }
 
-.arrow-block {
-    border-right: 2px solid #cccccc;
-    margin-right: 6px;
-    display: inline-flex;
-    padding: 6px 6px 6px 12px;
+.arrow-block {	
+    border-right: 2px solid #cccccc;	
+    margin-right: 6px;	
+    display: inline-flex;	
+    padding: 6px 6px 6px 12px;	
+}	
+	
+.title-block {	
+    display: inline-block;	
 }
+
 
 .vulnerability-block {
     margin-bottom: 12px;
@@ -59,7 +59,7 @@ export const TAG_DETAIL_STYLES: string = `
 
 .summary-block {
     margin-top: 24px;
-    display: inline-flex;
+    display: flex;
     flex-wrap: row wrap;
 }
 
@@ -78,27 +78,37 @@ export const TAG_DETAIL_STYLES: string = `
     padding-left: 24px;
 }
 
-.vulnerabilities-info .third-column {
+ .third-column {
     margin-left: 36px;
 }
+.vulnerability{
+margin-left: 50px;
+    margin-top: -12px;
+    margin-bottom: 20px;}
 
-.vulnerabilities-info .second-column,
-.vulnerabilities-info .fourth-column {
+.vulnerabilities-info .second-column {
     text-align: left;
     margin-left: 6px;
 }
+
+.fourth-column{
+float: left;
+margin-left:20px;}
 
 .vulnerabilities-info .second-row {
     margin-top: 6px;
 }
 
 .detail-title {
-    font-weight: 500;
+    float:left;
+    font-weight: 600;
     font-size: 14px;
 }
 
 .image-detail-label {
-    text-align: right;
+    margin-right: 10px;
+    text-align: left;
+    font-weight: 600;
 }
 
 .image-detail-value {

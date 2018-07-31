@@ -28,6 +28,7 @@ export class SystemSettingsComponent {
     @Input() showSubTitle: boolean = false;
     @Input() hasAdminRole: boolean = false;
     @Input() hasCAFile: boolean = false;
+    @Input() withAdmiral = false;
 
     @ViewChild("systemConfigFrom") systemSettingsForm: NgForm;
 
@@ -39,6 +40,10 @@ export class SystemSettingsComponent {
 
     get isValid(): boolean {
         return this.systemSettingsForm && this.systemSettingsForm.valid;
+    }
+
+    setRepoReadOnlyValue($event: any) {
+        this.systemSettings.read_only.value = $event;
     }
 
     get canDownloadCert(): boolean {

@@ -34,7 +34,7 @@ import { ConfirmationDialogComponent } from '../confirmation-dialog/confirmation
 import { ConfirmationMessage } from '../confirmation-dialog/confirmation-message';
 import { ConfirmationAcknowledgement } from '../confirmation-dialog/confirmation-state-message';
 import { Subscription } from 'rxjs/Subscription';
-import { Tag, TagClickEvent } from '../service/interface';
+import { Tag } from '../service/interface';
 
 import { State } from "clarity-angular";
 import {
@@ -60,14 +60,14 @@ export class RepositoryListviewComponent implements OnChanges, OnInit {
 
   @Input() hasSignedIn: boolean;
   @Input() hasProjectAdminRole: boolean;
-  @Output() tagClickEvent = new EventEmitter<TagClickEvent>();
+  @Output() repoClickEvent = new EventEmitter<RepositoryItem>();
 
   lastFilteredRepoName: string;
   repositories: RepositoryItem[];
   systemInfo: SystemInfo;
   selectedRow: RepositoryItem[] = [];
 
-  loading: boolean = true;
+  loading = true;
 
   @ViewChild('confirmationDialog')
   confirmationDialog: ConfirmationDialogComponent;
@@ -176,6 +176,13 @@ export class RepositoryListviewComponent implements OnChanges, OnInit {
               });
               return;
             }
+            if (error.status === 503) {
+              Observable.forkJoin(this.translateService.get('BATCH.DELETED_FAILURE'),
+                  this.translateService.get('REPOSITORY.TAGS_NO_DELETE')).subscribe(res => {
+                findedList = BathInfoChanges(findedList, res[0], false, true, res[1]);
+              });
+              return;
+            }
             this.translateService.get('BATCH.DELETED_FAILURE').subscribe(res => {
               findedList = BathInfoChanges(findedList, res, false, true);
             });
@@ -279,19 +286,15 @@ export class RepositoryListviewComponent implements OnChanges, OnInit {
     this.doSearchRepoNames('');
   }
 
-  watchTagClickEvt(tagClickEvt: TagClickEvent): void {
-    this.tagClickEvent.emit(tagClickEvt);
-  }
-
   clrLoad(state: State): void {
     this.selectedRow = [];
-    //Keep it for future filtering and sorting
+    // Keep it for future filtering and sorting
     this.currentState = state;
 
     let pageNumber: number = calculatePage(state);
     if (pageNumber <= 0) { pageNumber = 1; }
 
-    //Pagination
+    // Pagination
     let params: RequestQueryParams = new RequestQueryParams();
     params.set("page", '' + pageNumber);
     params.set("page_size", '' + this.pageSize);
@@ -307,7 +310,7 @@ export class RepositoryListviewComponent implements OnChanges, OnInit {
         this.repositories = repo.data;
 
         this.signedCon = {};
-        //Do filtering and sorting
+        // Do filtering and sorting
         this.repositories = doFiltering<RepositoryItem>(this.repositories, state);
         this.repositories = doSorting<RepositoryItem>(this.repositories, state);
 
@@ -318,7 +321,7 @@ export class RepositoryListviewComponent implements OnChanges, OnInit {
         this.errorHandler.error(error);
       });
 
-    //Force refresh view
+    // Force refresh view
     let hnd = setInterval(() => this.ref.markForCheck(), 100);
     setTimeout(() => clearInterval(hnd), 5000);
   }
@@ -331,7 +334,7 @@ export class RepositoryListviewComponent implements OnChanges, OnInit {
     let targetPageNumber: number = this.currentPage;
 
     if (this.currentPage > totalPages) {
-      targetPageNumber = totalPages;//Should == currentPage -1
+      targetPageNumber = totalPages; // Should == currentPage -1
     }
 
     let st: State = this.currentState;
@@ -344,8 +347,8 @@ export class RepositoryListviewComponent implements OnChanges, OnInit {
 
     return st;
   }
-  public gotoLink(projectId: number, repoName: string): void {
-    let linkUrl = [this.router.url, repoName];
-    this.router.navigate(linkUrl);
+
+  watchRepoClickEvt(repo: RepositoryItem) {
+    this.repoClickEvent.emit(repo);
   }
 }

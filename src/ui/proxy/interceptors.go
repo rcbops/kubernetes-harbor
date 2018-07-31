@@ -35,7 +35,7 @@ const (
 var rec *httptest.ResponseRecorder
 
 // NotaryEndpoint , exported for testing.
-var NotaryEndpoint = config.InternalNotaryEndpoint()
+var NotaryEndpoint = ""
 
 // MatchPullManifest checks if the request looks like a request to pull manifest.  If it is returns the image and tag/sha256 digest as 2nd and 3rd return values
 func MatchPullManifest(req *http.Request) (bool, string, string) {
@@ -123,20 +123,20 @@ func (uh urlHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 	if flag {
 		components := strings.SplitN(repository, "/", 2)
 		if len(components) < 2 {
-			http.Error(rw, marshalError(fmt.Sprintf("Bad repository name: %s", repository)), http.StatusBadRequest)
+			http.Error(rw, marshalError("PROJECT_POLICY_VIOLATION", fmt.Sprintf("Bad repository name: %s", repository)), http.StatusBadRequest)
 			return
 		}
 
 		client, err := uiutils.NewRepositoryClientForUI(tokenUsername, repository)
 		if err != nil {
 			log.Errorf("Error creating repository Client: %v", err)
-			http.Error(rw, marshalError(fmt.Sprintf("Failed due to internal Error: %v", err)), http.StatusInternalServerError)
+			http.Error(rw, marshalError("PROJECT_POLICY_VIOLATION", fmt.Sprintf("Failed due to internal Error: %v", err)), http.StatusInternalServerError)
 			return
 		}
 		digest, _, err := client.ManifestExist(reference)
 		if err != nil {
 			log.Errorf("Failed to get digest for reference: %s, error: %v", reference, err)
-			http.Error(rw, marshalError(fmt.Sprintf("Failed due to internal Error: %v", err)), http.StatusInternalServerError)
+			http.Error(rw, marshalError("PROJECT_POLICY_VIOLATION", fmt.Sprintf("Failed due to internal Error: %v", err)), http.StatusInternalServerError)
 			return
 		}
 
@@ -152,6 +152,21 @@ func (uh urlHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
 		req = req.WithContext(ctx)
 	}
 	uh.next.ServeHTTP(rw, req)
+}
+
+type readonlyHandler struct {
+	next http.Handler
+}
+
+func (rh readonlyHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	if config.ReadOnly() {
+		if req.Method == http.MethodDelete || req.Method == http.MethodPost || req.Method == http.MethodPatch || req.Method == http.MethodPut {
+                        log.Warningf("The request is prohibited in readonly mode, url is: %s", req.URL.Path)
+			http.Error(rw, marshalError("DENIED", "The system is in read only mode. Any modification is prohibited."), http.StatusForbidden)
+			return
+		}
+	}
+	rh.next.ServeHTTP(rw, req)
 }
 
 type listReposHandler struct {
@@ -227,12 +242,12 @@ func (cth contentTrustHandler) ServeHTTP(rw http.ResponseWriter, req *http.Reque
 	}
 	match, err := matchNotaryDigest(img)
 	if err != nil {
-		http.Error(rw, marshalError("Failed in communication with Notary please check the log"), http.StatusInternalServerError)
+		http.Error(rw, marshalError("PROJECT_POLICY_VIOLATION", "Failed in communication with Notary please check the log"), http.StatusInternalServerError)
 		return
 	}
 	if !match {
 		log.Debugf("digest mismatch, failing the response.")
-		http.Error(rw, marshalError("The image is not signed in Notary."), http.StatusPreconditionFailed)
+		http.Error(rw, marshalError("PROJECT_POLICY_VIOLATION", "The image is not signed in Notary."), http.StatusPreconditionFailed)
 		return
 	}
 	cth.next.ServeHTTP(rw, req)
@@ -261,25 +276,28 @@ func (vh vulnerableHandler) ServeHTTP(rw http.ResponseWriter, req *http.Request)
 	overview, err := dao.GetImgScanOverview(img.digest)
 	if err != nil {
 		log.Errorf("failed to get ImgScanOverview with repo: %s, reference: %s, digest: %s. Error: %v", img.repository, img.reference, img.digest, err)
-		http.Error(rw, marshalError("Failed to get ImgScanOverview."), http.StatusPreconditionFailed)
+		http.Error(rw, marshalError("PROJECT_POLICY_VIOLATION", "Failed to get ImgScanOverview."), http.StatusPreconditionFailed)
 		return
 	}
 	// severity is 0 means that the image fails to scan or not scanned successfully.
 	if overview == nil || overview.Sev == 0 {
 		log.Debugf("cannot get the image scan overview info, failing the response.")
-		http.Error(rw, marshalError("Cannot get the image severity."), http.StatusPreconditionFailed)
+		http.Error(rw, marshalError("PROJECT_POLICY_VIOLATION", "Cannot get the image severity."), http.StatusPreconditionFailed)
 		return
 	}
 	imageSev := overview.Sev
 	if imageSev >= int(projectVulnerableSeverity) {
 		log.Debugf("the image severity: %q is higher then project setting: %q, failing the response.", models.Severity(imageSev), projectVulnerableSeverity)
-		http.Error(rw, marshalError(fmt.Sprintf("The severity of vulnerability of the image: %q is equal or higher than the threshold in project setting: %q.", models.Severity(imageSev), projectVulnerableSeverity)), http.StatusPreconditionFailed)
+		http.Error(rw, marshalError("PROJECT_POLICY_VIOLATION", fmt.Sprintf("The severity of vulnerability of the image: %q is equal or higher than the threshold in project setting: %q.", models.Severity(imageSev), projectVulnerableSeverity)), http.StatusPreconditionFailed)
 		return
 	}
 	vh.next.ServeHTTP(rw, req)
 }
 
 func matchNotaryDigest(img imageInfo) (bool, error) {
+	if NotaryEndpoint == "" {
+		NotaryEndpoint = config.InternalNotaryEndpoint()
+	}
 	targets, err := notary.GetInternalTargets(NotaryEndpoint, tokenUsername, img.repository)
 	if err != nil {
 		return false, err
@@ -323,12 +341,12 @@ func copyResp(rec *httptest.ResponseRecorder, rw http.ResponseWriter) {
 	rw.Write(rec.Body.Bytes())
 }
 
-func marshalError(msg string) string {
+func marshalError(code, msg string) string {
 	var tmpErrs struct {
 		Errors []JSONError `json:"errors,omitempty"`
 	}
 	tmpErrs.Errors = append(tmpErrs.Errors, JSONError{
-		Code:    "PROJECT_POLICY_VIOLATION",
+		Code:    code,
 		Message: msg,
 		Detail:  msg,
 	})

@@ -5,6 +5,9 @@
 .container-override {
     position: relative !important;
 }
+.content-container{
+    position: relative;
+}
 
 .start-content-padding {
     padding: 0px !important;
@@ -13,10 +16,14 @@
 }
 
 .content-area-override {
-    padding: 36px !important;
+    padding-left: 36px !important;
+    padding-bottom: 36px !important;
     padding-right: 21px !important;
 }
 
 .nav-link-override {
     width: 126px !important;
+}
+:host >>> .clr-vertical-nav .nav-trigger+.nav-content{
+    padding-top: 0;
 }

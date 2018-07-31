@@ -31,6 +31,9 @@ func (d *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 	if err != nil {
 		return nil, err
 	}
+	if u == nil {
+		return nil, auth.NewErrAuth("Invalid credentials")
+	}
 	return u, nil
 }
 
@@ -41,6 +44,11 @@ func (d *Auth) SearchUser(username string) (*models.User, error) {
 	}
 
 	return dao.GetUser(queryCondition)
+}
+
+// OnBoardUser -
+func (d *Auth) OnBoardUser(u *models.User) error {
+	return nil
 }
 
 func init() {

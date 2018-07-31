@@ -7,20 +7,17 @@ export const REPOSITORY_STYLE = `.option-right {
   cursor: pointer;
 }
 
-.arrow-block {
-  border-right: 2px solid #cccccc;
-  margin-right: 6px;
-  display: inline-flex;
-  padding: 6px 6px 6px 12px;
-}
+.arrow-block {	
+  border-right: 2px solid #cccccc;	
+  margin-right: 6px;	
+  display: inline-flex;	
+  padding: 6px 6px 6px 12px;	
+}	
+	
+.title-block {	
+  display: inline-block;	
+}	
 
-.title-block {
-  display: inline-block;
-}
-
-.title-wrapper {
-  padding-top: 12px;
-}
 .tag-name {
   font-weight: 300;
   font-size: 32px;

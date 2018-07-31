@@ -17,6 +17,7 @@ package systemcfg
 import (
 	"fmt"
 	"os"
+	"regexp"
 	"strconv"
 	"strings"
 
@@ -29,6 +30,7 @@ import (
 	comcfg "github.com/vmware/harbor/src/common/config"
 	"github.com/vmware/harbor/src/common/dao"
 	"github.com/vmware/harbor/src/common/models"
+	"github.com/vmware/harbor/src/common/utils"
 	"github.com/vmware/harbor/src/common/utils/log"
 )
 
@@ -89,6 +91,13 @@ var (
 			env:   "LDAP_VERIFY_CERT",
 			parse: parseStringToBool,
 		},
+		common.LDAPGroupBaseDN:        "LDAP_GROUP_BASEDN",
+		common.LDAPGroupSearchFilter:  "LDAP_GROUP_FILTER",
+		common.LDAPGroupAttributeName: "LDAP_GROUP_GID",
+		common.LDAPGroupSearchScope: &parser{
+			env:   "LDAP_GROUP_SCOPE",
+			parse: parseStringToInt,
+		},
 		common.EmailHost: "EMAIL_HOST",
 		common.EmailPort: &parser{
 			env:   "EMAIL_PORT",
@@ -144,7 +153,15 @@ var (
 		},
 		common.UIURL:                       "UI_URL",
 		common.JobServiceURL:               "JOBSERVICE_URL",
+		common.TokenServiceURL:             "TOKEN_SERVICE_URL",
+		common.ClairURL:                    "CLAIR_URL",
+		common.NotaryURL:                   "NOTARY_URL",
 		common.RegistryStorageProviderName: "REGISTRY_STORAGE_PROVIDER_NAME",
+		common.ReadOnly: &parser{
+			env:   "READ_ONLY",
+			parse: parseStringToBool,
+		},
+		common.ReloadKey: "RELOAD_KEY",
 	}
 
 	// configurations need read from environment variables
@@ -152,6 +169,13 @@ var (
 	repeatLoadEnvs = map[string]interface{}{
 		common.ExtEndpoint:   "EXT_ENDPOINT",
 		common.MySQLPassword: "MYSQL_PWD",
+		common.MySQLHost:     "MYSQL_HOST",
+		common.MySQLUsername: "MYSQL_USR",
+		common.MySQLDatabase: "MYSQL_DATABASE",
+		common.MySQLPort: &parser{
+			env:   "MYSQL_PORT",
+			parse: parseStringToInt,
+		},
 		common.MaxJobWorkers: &parser{
 			env:   "MAX_JOB_WORKERS",
 			parse: parseStringToInt,
@@ -170,6 +194,12 @@ var (
 			parse: parseStringToBool,
 		},
 		common.ClairDBPassword: "CLAIR_DB_PASSWORD",
+		common.ClairDBHost:     "CLAIR_DB_HOST",
+		common.ClairDBUsername: "CLAIR_DB_USERNAME",
+		common.ClairDBPort: &parser{
+			env:   "CLAIR_DB_PORT",
+			parse: parseStringToInt,
+		},
 		common.UAAEndpoint:     "UAA_ENDPOINT",
 		common.UAAClientID:     "UAA_CLIENTID",
 		common.UAAClientSecret: "UAA_CLIENTSECRET",
@@ -178,6 +208,12 @@ var (
 			parse: parseStringToBool,
 		},
 		common.RegistryStorageProviderName: "REGISTRY_STORAGE_PROVIDER_NAME",
+		common.UIURL:                       "UI_URL",
+		common.JobServiceURL:               "JOBSERVICE_URL",
+		common.RegistryURL:                 "REGISTRY_URL",
+		common.TokenServiceURL:             "TOKEN_SERVICE_URL",
+		common.ClairURL:                    "CLAIR_URL",
+		common.NotaryURL:                   "NOTARY_URL",
 	}
 )
 
@@ -208,28 +244,26 @@ func Init() (err error) {
 		return err
 	}
 
-	loadAll := false
-	cfgs := map[string]interface{}{}
-
-	if os.Getenv("RESET") == "true" {
-		log.Info("RESET is set, will load all configurations from environment variables")
-		loadAll = true
-	}
-
-	if !loadAll {
-		cfgs, err = CfgStore.Read()
-		if cfgs == nil {
-			log.Info("configurations read from storage driver are null, will load them from environment variables")
-			loadAll = true
-			cfgs = map[string]interface{}{}
-		}
-	}
-
-	if err = LoadFromEnv(cfgs, loadAll); err != nil {
+	//Use reload key to avoid reset customed setting after restart
+	curCfgs, err := CfgStore.Read()
+	if err != nil {
 		return err
 	}
+	loadAll := isLoadAll(curCfgs)
+	if curCfgs == nil {
+		curCfgs = map[string]interface{}{}
+	}
+	//restart: only repeatload envs will be load
+	//reload_config: all envs will be reload except the skiped envs
+	if err = LoadFromEnv(curCfgs, loadAll); err != nil {
+		return err
+	}
+	AddMissedKey(curCfgs)
+	return CfgStore.Write(curCfgs)
+}
 
-	return CfgStore.Write(cfgs)
+func isLoadAll(cfg map[string]interface{}) bool {
+	return cfg == nil || strings.EqualFold(os.Getenv("RESET"), "true") && os.Getenv("RELOAD_KEY") != cfg[common.ReloadKey]
 }
 
 func initCfgStore() (err error) {
@@ -279,7 +313,6 @@ func initCfgStore() (err error) {
 				// only used when migrating harbor release before v1.3
 				// after v1.3 there is always a db configuration before migrate.
 				validLdapScope(jsonconfig, true)
-
 				err = CfgStore.Write(jsonconfig)
 				if err != nil {
 					log.Error("Failed to update old configuration to database")
@@ -325,13 +358,30 @@ func LoadFromEnv(cfgs map[string]interface{}, all bool) error {
 		}
 	}
 
+	skipPattern := os.Getenv("SKIP_RELOAD_ENV_PATTERN")
+	skipPattern = strings.TrimSpace(skipPattern)
+	if len(skipPattern) == 0 {
+		skipPattern = "$^" // doesn't match any string by default
+	}
+	skipMatcher, err := regexp.Compile(skipPattern)
+	if err != nil {
+		log.Errorf("Regular express parse error, skipPattern:%v", skipPattern)
+		skipMatcher = regexp.MustCompile("$^")
+	}
+
 	for k, v := range envs {
 		if str, ok := v.(string); ok {
+			if all && skipMatcher.MatchString(str) {
+				continue
+			}
 			cfgs[k] = os.Getenv(str)
 			continue
 		}
 
 		if parser, ok := v.(*parser); ok {
+			if all && skipMatcher.MatchString(parser.env) {
+				continue
+			}
 			i, err := parser.parse(os.Getenv(parser.env))
 			if err != nil {
 				return err
@@ -349,16 +399,16 @@ func LoadFromEnv(cfgs map[string]interface{}, all bool) error {
 // GetDatabaseFromCfg Create database object from config
 func GetDatabaseFromCfg(cfg map[string]interface{}) *models.Database {
 	database := &models.Database{}
-	database.Type = cfg[common.DatabaseType].(string)
+	database.Type = utils.SafeCastString(cfg[common.DatabaseType])
 	mysql := &models.MySQL{}
-	mysql.Host = cfg[common.MySQLHost].(string)
-	mysql.Port = int(cfg[common.MySQLPort].(int))
-	mysql.Username = cfg[common.MySQLUsername].(string)
-	mysql.Password = cfg[common.MySQLPassword].(string)
-	mysql.Database = cfg[common.MySQLDatabase].(string)
+	mysql.Host = utils.SafeCastString(cfg[common.MySQLHost])
+	mysql.Port = utils.SafeCastInt(cfg[common.MySQLPort])
+	mysql.Username = utils.SafeCastString(cfg[common.MySQLUsername])
+	mysql.Password = utils.SafeCastString(cfg[common.MySQLPassword])
+	mysql.Database = utils.SafeCastString(cfg[common.MySQLDatabase])
 	database.MySQL = mysql
 	sqlite := &models.SQLite{}
-	sqlite.File = cfg[common.SQLiteFile].(string)
+	sqlite.File = utils.SafeCastString(cfg[common.SQLiteFile])
 	database.SQLite = sqlite
 	return database
 }
@@ -382,4 +432,28 @@ func validLdapScope(cfg map[string]interface{}, isMigrate bool) {
 		ldapScope = 0
 	}
 	cfg[ldapScopeKey] = ldapScope
+
+}
+
+//AddMissedKey ... If the configure key is missing in the cfg map, add default value to it
+func AddMissedKey(cfg map[string]interface{}) {
+
+	for k, v := range common.HarborStringKeysMap {
+		if _, exist := cfg[k]; !exist {
+			cfg[k] = v
+		}
+	}
+
+	for k, v := range common.HarborNumKeysMap {
+		if _, exist := cfg[k]; !exist {
+			cfg[k] = v
+		}
+	}
+
+	for k, v := range common.HarborBoolKeysMap {
+		if _, exist := cfg[k]; !exist {
+			cfg[k] = v
+		}
+	}
+
 }

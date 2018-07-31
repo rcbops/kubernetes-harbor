@@ -54,15 +54,14 @@ import {Observable} from "rxjs/Observable";
 })
 export class ListReplicationRuleComponent implements OnInit, OnChanges {
 
-  nullTime: string = '0001-01-01T00:00:00Z';
+  nullTime = '0001-01-01T00:00:00Z';
 
   @Input() projectId: number;
   @Input() isSystemAdmin: boolean;
   @Input() selectedId: number | string;
   @Input() withReplicationJob: boolean;
-  @Input() readonly: boolean;
 
-  @Input() loading: boolean = false;
+  @Input() loading = false;
 
   @Output() reload = new EventEmitter<boolean>();
   @Output() selectOne = new EventEmitter<ReplicationRule>();
@@ -73,7 +72,7 @@ export class ListReplicationRuleComponent implements OnInit, OnChanges {
   @Output() openNewRule = new EventEmitter<any>();
   @Output() replicateManual = new EventEmitter<ReplicationRule[]>();
 
-  projectScope: boolean = false;
+  projectScope = false;
 
   rules: ReplicationRule[];
   changedRules: ReplicationRule[];
@@ -100,10 +99,6 @@ export class ListReplicationRuleComponent implements OnInit, OnChanges {
     setInterval(() => ref.markForCheck(), 500);
   }
 
-  public get opereateAvailable(): boolean {
-    return !this.readonly && !this.projectId ? true : false;
-  }
-
   trancatedDescription(desc: string): string {
     if (desc.length > 35 ) {
       return desc.substr(0, 35);
@@ -113,7 +108,7 @@ export class ListReplicationRuleComponent implements OnInit, OnChanges {
   }
 
   ngOnInit(): void {
-    //Global scope
+    // Global scope
     if (!this.projectScope) {
       this.retrieveRules();
     }
@@ -125,65 +120,30 @@ export class ListReplicationRuleComponent implements OnInit, OnChanges {
       if (proIdChange.currentValue !== proIdChange.previousValue) {
         if (proIdChange.currentValue) {
           this.projectId = proIdChange.currentValue;
-          this.projectScope = true; //Scope is project, not global list
-          //Initially load the replication rule data
+          this.projectScope = true; // Scope is project, not global list
+          // Initially load the replication rule data
           this.retrieveRules();
         }
       }
     }
   }
 
-  retrieveRules(ruleName: string = ''): void {
+  retrieveRules(ruleName = ''): void {
     this.loading = true;
-    this.selectedRow = null;
+    /*this.selectedRow = null;*/
     toPromise<ReplicationRule[]>(this.replicationService
       .getReplicationRules(this.projectId, ruleName))
       .then(rules => {
         this.rules = rules || [];
-        if (this.rules && this.rules.length > 0) {
-          this.selectedId = this.rules[0].id || '';
-          this.selectOne.emit(this.rules[0]);
-        } else {
-          this.hideJobs.emit();
-        }
+        // job list hidden
+        this.hideJobs.emit();
         this.changedRules = this.rules;
-        this.selectedRow = this.changedRules[0];
         this.loading = false;
       }
       ).catch(error => {
         this.errorHandler.error(error);
         this.loading = false;
       });
-  }
-
-  filterRuleStatus(status: string) {
-    if (status === 'all') {
-      this.changedRules = this.rules;
-    } else {
-      this.changedRules = this.rules.filter(policy => policy.enabled === +status);
-    }
-  }
-
-  toggleConfirm(message: ConfirmationAcknowledgement) {
-    if (message &&
-        message.source === ConfirmationTargets.TOGGLE_CONFIRM &&
-        message.state === ConfirmationState.CONFIRMED) {
-      this.batchDelectionInfos = [];
-      let rule: ReplicationRule = message.data;
-      let initBatchMessage = new BatchInfo ();
-      initBatchMessage.name = rule.name;
-      this.batchDelectionInfos.push(initBatchMessage);
-
-      if (rule) {
-        rule.enabled = rule.enabled === 0 ? 1 : 0;
-        toPromise<any>(this.replicationService
-            .enableReplicationRule(rule.id || '', rule.enabled))
-            .then(() =>
-                this.translateService.get('REPLICATION.TOGGLED_SUCCESS')
-                    .subscribe(res => this.batchDelectionInfos[0].status = res))
-            .catch(error => this.batchDelectionInfos[0].status = error);
-      }
-    }
   }
 
   replicateRule(rules: ReplicationRule[]): void {
@@ -216,21 +176,10 @@ export class ListReplicationRuleComponent implements OnInit, OnChanges {
     this.editOne.emit(rule);
   }
 
-  toggleRule(rule: ReplicationRule) {
-    let toggleConfirmMessage: ConfirmationMessage = new ConfirmationMessage(
-      rule.enabled === 1 ? 'REPLICATION.TOGGLE_DISABLE_TITLE' : 'REPLICATION.TOGGLE_ENABLE_TITLE',
-      rule.enabled === 1 ? 'REPLICATION.CONFIRM_TOGGLE_DISABLE_POLICY' : 'REPLICATION.CONFIRM_TOGGLE_ENABLE_POLICY',
-      rule.name || '',
-      rule,
-      ConfirmationTargets.TOGGLE_CONFIRM
-    );
-    this.toggleConfirmDialog.open(toggleConfirmMessage);
-  }
-
   jobList(id: string | number): Promise<void> {
     let ruleData: ReplicationJobItem[];
     this.canDeleteRule = true;
-    let count: number = 0;
+    let count = 0;
     return toPromise<ReplicationJob>(this.replicationService
         .getJobs(id))
         .then(response => {

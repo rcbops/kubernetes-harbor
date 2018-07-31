@@ -15,8 +15,8 @@
 *** Settings ***
 Documentation  Harbor BATs
 Resource  ../../resources/Util.robot
-Suite Setup  Nightly Test Setup  ${ip}  ${SSH_PWD}  ${HARBOR_PASSWORD}
-Suite Teardown  Collect Nightly Logs  ${ip}  ${SSH_PWD}
+Suite Setup  Nightly Test Setup  ${ip}  ${SSH_PWD}  ${HARBOR_PASSWORD}  ${ip1}
+Suite Teardown  Collect Nightly Logs  ${ip}  ${SSH_PWD}  ${ip1}
 Default Tags  Nightly
 
 *** Variables ***
@@ -25,8 +25,30 @@ ${SSH_USER}  root
 ${HARBOR_ADMIN}  admin
 
 *** Test Cases ***
+Test Case - Vulnerability Data Not Ready
+#This case must run before vulnerability db ready
+    Init Chrome Driver
+    Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
+    Go Into Project  library
+    Vulnerability Not Ready Project Hint
+    Switch To Configure
+    Go To Vulnerability Config
+    Vulnerability Not Ready Config Hint
+
+Test Case - Read Only Mode
+    Init Chrome Driver
+    ${d}=   Get Current Date    result_format=%m%s
+    Create An New Project With New User  url=${HARBOR_URL}  username=tester${d}  email=tester${d}@vmware.com  realname=tester${d}  newPassword=Test1@34  comment=harbor  projectname=project${d}  public=true
+
+    Enable Read Only
+    Cannot Push image  ${ip}  tester${d}  Test1@34  project${d}  busybox:latest
+
+    Disable Read Only
+    Push image  ${ip}  tester${d}  Test1@34  project${d}  busybox:latest
+    Close Browser
+
 Test Case - Create An New User
-    Init Chrome Driver    
+    Init Chrome Driver
     ${d}=    Get Current Date    result_format=%m%s
     Create An New User  url=${HARBOR_URL}  username=tester${d}  email=tester${d}@vmware.com  realname=harbortest  newPassword=Test1@34  comment=harbortest
     Close Browser
@@ -51,7 +73,7 @@ Test Case - Update Password
     Logout Harbor
     Sign In Harbor  ${HARBOR_URL}  tester${d}  Test12#4
     Close Browser
-	
+
 Test Case - Create An New Project
     Init Chrome Driver
     ${d}=    Get Current Date    result_format=%m%s
@@ -71,8 +93,8 @@ Test Case - User View Projects
     Wait Until Page Contains  test${d}1
     Wait Until Page Contains  test${d}2
     Wait Until Page Contains  test${d}3
-    Close Browser	
-	
+    Close Browser
+
 Test Case - Push Image
     Init Chrome Driver
     ${d}=    Get Current Date    result_format=%m%s
@@ -86,21 +108,21 @@ Test Case - Push Image
 Test Case - User View Logs
     Init Chrome Driver
     ${d}=   Get Current Date    result_format=%m%s
-				
+
     Create An New Project With New User  url=${HARBOR_URL}  username=tester${d}  email=tester${d}@vmware.com  realname=tester${d}  newPassword=Test1@34  comment=harbor  projectname=project${d}  public=true
 
     Push image  ${ip}  tester${d}  Test1@34  project${d}  busybox:latest
     Pull image  ${ip}  tester${d}  Test1@34  project${d}  busybox:latest
-    
+
     Go Into Project  project${d}
     Delete Repo  project${d}
-	
+
     Go To Project Log
     Advanced Search Should Display
-	
+
     Do Log Advanced Search
     Close Browser
-	
+
 Test Case - Manage project publicity
     Init Chrome Driver
     ${d}=    Get Current Date  result_format=%m%s
@@ -150,9 +172,13 @@ Test Case - Project Level Policy Public
     Click Project Public
     Save Project Config
     # Verify
-    Public Should Be Selected 
+    Public Should Be Selected
     Back To Projects
     # Project${d}  default should be private
+    # Here logout and login to try avoid a bug only in autotest
+    Logout Harbor
+    Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
+    Filter Object  project${d}
     Project Should Be Public  project${d}
     Close Browser
 
@@ -240,15 +266,90 @@ Test Case - Edit Token Expire
     Modify Token Expiration  30
     Close Browser
 
-#Test Case - Create An Replication Rule New Endpoint
-#    Init Chrome Driver
-#    ${d}=  Get current date  result_format=%m%s
-#    Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
-#    Create An New Project  project${d}
-#    Go Into Project  project${d}
-#    Switch To Replication
-#    Create An New Rule With New Endpoint  policy_name=test_policy_${d}  policy_description=test_description  destination_name=test_destination_name_${d}  destination_url=test_destination_url_${d}  destination_username=test_destination_username  destination_password=test_destination_password
-#    Close Browser
+Test Case - Create A New Labels
+    Init Chrome Driver
+    ${d}=    Get Current Date
+    Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
+    Switch To System Labels
+    Create New Labels  label_${d}
+    Close Browser
+
+Test Case - Update Label
+   Init Chrome Driver
+   ${d}=    Get Current Date
+
+   Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
+   Switch To System Labels
+   Create New Labels  label_${d}
+   Sleep  3
+   ${d1}=    Get Current Date
+   Update A Label  label_${d}
+   Close Browser
+
+Test Case - Delete Label
+    Init Chrome Driver
+    ${d}=    Get Current Date
+    Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
+    Switch To System Labels
+    Create New Labels  label_${d}
+    Sleep  3
+    Delete A Label
+    Close Browser
+
+TestCase - Project Admin Operate Labels
+    Init Chrome Driver
+    ${d}=   Get Current Date    result_format=%m%s
+    Create An New Project With New User  url=${HARBOR_URL}  username=test${d}  email=test${d}@vmware.com  realname=test${d}  newPassword=Test1@34  comment=harbor  projectname=project${d}  public=false
+
+    Go Into Project  project${d}
+    Sleep  2
+    # Add labels
+    Switch To Project Label
+    Create New Labels  label_${d}
+    Sleep  2
+    Update A Label  label_${d}
+    Sleep  2
+    Delete A Label
+    Close Browser
+
+TestCase - Project Admin Add Labels To Repo
+    Init Chrome Driver
+    ${d}=   Get Current Date    result_format=%m%s
+    Create An New Project With New User  url=${HARBOR_URL}  username=test${d}  email=test${d}@vmware.com  realname=test${d}  newPassword=Test1@34  comment=harbor  projectname=project${d}  public=false
+    Push Image With Tag  ${ip}  test${d}  Test1@34  project${d}  vmware/photon  1.0  1.0
+
+    Go Into Project  project${d}
+    Sleep  2
+    # Add labels
+    Switch To Project Label
+    Create New Labels  label111
+    Capture Page Screenshot  CreateLabel1.png
+    Create New Labels  label22
+    Capture Page Screenshot  CreateLabel2.png
+    Sleep  2
+    Switch To Project Repo
+    Go Into Repo  project${d}/redis
+    Add Labels To Tag  3.2.10-alpine  label111
+    Add Labels To Tag  4.0.7-alpine  label22
+    Filter Labels In Tags  label111  label22
+    Close Browser
+
+TestCase - Developer Operate Labels
+    Init Chrome Driver
+    ${d}=   Get Current Date    result_format=%m%s
+    Create An New Project With New User  url=${HARBOR_URL}  username=test${d}  email=test${d}@vmware.com  realname=test${d}  newPassword=Test1@34  comment=harbor  projectname=project${d}  public=false
+    Logout Harbor
+    Create An New User  url=${HARBOR_URL}  username=bob${d}  email=bob${d}@vmware.com  realname=bob${d}  newPassword=Test1@34  comment=habor
+    Logout Harbor
+
+    Manage Project Member  test${d}  Test1@34  project${d}  bob${d}  Add
+    Change User Role In Project  test${d}  Test1@34  project${d}  bob${d}  Developer
+
+    Sign In Harbor  ${HARBOR_URL}  bob${d}  Test1@34
+    Go Into Project  project${d}
+    Sleep  3
+    Page Should Not Contain Element  xpath=//a[contains(.,'Labels')]
+    Close Browser
 
 Test Case - Scan A Tag In The Repo
     Init Chrome Driver
@@ -257,9 +358,84 @@ Test Case - Scan A Tag In The Repo
     Push Image  ${ip}  tester${d}  Test1@34  project${d}  hello-world
     Go Into Project  project${d}
     Go Into Repo  project${d}/hello-world
-    Scan Repo  latest
+    Scan Repo  latest  Succeed
     Summary Chart Should Display  latest
+    Pull Image  ${ip}  tester${d}  Test1@34  project${d}  hello-world
     # Edit Repo Info
+    Close Browser
+
+Test Case - Scan As An Unprivileged User
+    Init Chrome Driver
+    ${d}=    get current date    result_format=%m%s
+    Push Image  ${ip}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}  library  hello-world
+    Create An New User  ${HARBOR_URL}  user${d}  user${d}@vmware.com  user${d}  Test1@34  harbor
+    Go Into Project  library
+    Go Into Repo  hello-world
+    Select Object  latest
+    Scan Is Disabled
+    Close Browser
+##
+Test Case - Scan Image With Empty Vul
+    Init Chrome Driver
+    Push Image  ${ip}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}  library  hello-world
+    Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
+    Go Into Project  library
+    Go Into Repo  hello-world
+    Scan Repo  latest  Succeed
+    Move To Summary Chart
+    Wait Until Page Contains  Unknow
+    Close Browser
+###
+Test Case - Disable Scan Schedule
+    Init Chrome Driver
+    Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
+    Switch To Configure
+    Go To Vulnerability Config
+    Disable Scan Schedule
+    Logout Harbor
+    Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
+    Switch To Configure
+    Go To Vulnerability Config
+    Page Should Contain  None
+    Close Browser
+###
+Test Case - Manual Scan All
+    Init Chrome Driver
+    Push Image  ${ip}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}  library  redis
+    Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
+    Switch To Configure
+    Go To Vulnerability Config
+    Trigger Scan Now
+    Back To Projects
+    Go Into Project  library
+    Go Into Repo  redis
+    Summary Chart Should Display  latest
+    Close Browser
+#
+Test Case - Project Level Image Serverity Policy
+    Init Chrome Driver
+    Push Image  ${ip}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}  library  haproxy
+    Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
+    Go Into Project  library
+    Go Into Repo  haproxy
+    Scan Repo  latest  Succeed
+    Back To Projects
+    Go Into Project  library
+    Set Vulnerabilty Serverity  0
+    Cannot pull image  ${ip}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}  library  haproxy
+    Close Browser
+
+Test Case - Scan Image On Push
+    Init Chrome Driver
+    Sign In Harbor  ${HARBOR_URL}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}
+    Go Into Project  library
+    Goto Project Config
+    Enable Scan On Push
+    Push Image  ${ip}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}  library  memcached
+    Back To Projects
+    Go Into Project  library
+    Go Into Repo  memcached
+    Summary Chart Should Display  latest
     Close Browser
 
 Test Case - Manage Project Member
@@ -291,7 +467,7 @@ Test Case - Delete A Project
     Init Chrome Driver
     ${d}=    Get Current Date    result_format=%m%s
     Create An New Project With New User  ${HARBOR_URL}  tester${d}  tester${d}@vmware.com  tester${d}  Test1@34  harobr  project${d}  false
-    Push Image  ${ip}  tester${d}  Test1@34  project${d}  hello-world  
+    Push Image  ${ip}  tester${d}  Test1@34  project${d}  hello-world
     Project Should Not Be Deleted  project${d}
     Go Into Project  project${d}
     Delete Repo  project${d}
@@ -301,7 +477,7 @@ Test Case - Delete A Project
 
 Test Case - Delete Multi Project
     Init Chrome Driver
-    ${d}=    Get Current Date    result_format=%m%s 
+    ${d}=    Get Current Date    result_format=%m%s
     Create An New User  ${HARBOR_URL}  test${d}  test${d}@vmware.com  test${d}  Test1@34  harbor
     Create An New Project  projecta${d}
     Create An New Project  projectb${d}
@@ -327,8 +503,8 @@ Test Case - Delete Multi User
     Switch To User Tag
     Filter Object  delete
     Multi-delete Object  deletea  deleteb  deletec
-    # Assert delete 
-    Delete Success  
+    # Assert delete
+    Delete Success
     Sleep  1
     # Filter object  delete
     Page Should Not Contain  deletea
@@ -339,7 +515,7 @@ Test Case - Delete Multi Repo
     ${d}=   Get Current Date    result_format=%m%s
     Create An New User  ${HARBOR_URL}  test${d}  test${d}@vmware.com  test${d}  Test1@34  harbor
     Create An New Project  project${d}
-    Push Image  ${ip}  test${d}  Test1@34  project${d}  hello-world  
+    Push Image  ${ip}  test${d}  Test1@34  project${d}  hello-world
     Push Image  ${ip}  test${d}  Test1@34  project${d}  busybox
     Sleep  2
     Go Into Project  project${d}
@@ -353,12 +529,27 @@ Test Case - Delete Multi Tag
     ${d}=   Get Current Date    result_format=%m%s
     Create An New User  ${HARBOR_URL}  test${d}  test${d}@vmware.com  test${d}  Test1@34  harbor
     Create An New Project  project${d}
-    Push Image With Tag  ${ip}  test${d}  Test1@34  project${d}  redis  3.2.10-alpine
-    Push Image With Tag  ${ip}  test${d}  Test1@34  project${d}  redis  4.0.7-alpine
+    Push Image With Tag  ${ip}  test${d}  Test1@34  project${d}  redis  3.2.10-alpine  3.2.10-alpine
+    Push Image With Tag  ${ip}  test${d}  Test1@34  project${d}  redis  4.0.7-alpine  4.0.7-alpine
     Sleep  2
     Go Into Project  project${d}
     Go Into Repo  redis
     Multi-delete object  3.2.10-alpine  4.0.7-alpine
+    # Verify
+    Delete Success
+    Close Browser
+
+Test Case - Delete Repo on CardView
+    Init Chrome Driver
+    ${d}=   Get Current Date  result_format=%m%s
+    Create An New User  ${HARBOR_URL}  test${d}  test${d}@vmware.com  test${d}  Test1@34  harbor
+    Create An New Project  project${d}
+    Push Image  ${ip}  test${d}  Test1@34  project${d}  hello-world
+    Push Image  ${ip}  test${d}  Test1@34  project${d}  busybox
+    Sleep  2
+    Go Into Project  project${d}
+    Switch To CardView
+    Delete Repo on CardView  hello-world
     # Verify
     Delete Success
     Close Browser
@@ -380,7 +571,7 @@ Test Case - Delete Multi Member
     Delete Success
     Page Should Not Contain  testa${d}
     Close Browser
-    
+
 Test Case - Assign Sys Admin
     Init Chrome Driver
     ${d}=    Get Current Date    result_format=%m%s
@@ -399,7 +590,7 @@ Test Case - Admin Push Signed Image
 
     ${rc}  ${output}=  Run And Return Rc And Output  docker pull hello-world:latest
     Log  ${output}
-		
+
     Push image  ${ip}  ${HARBOR_ADMIN}  ${HARBOR_PASSWORD}  library  hello-world:latest
     ${rc}  ${output}=  Run And Return Rc And Output  ./tests/robot-cases/Group9-Content-trust/notary-push-image.sh ${ip}
     Log  ${output}
@@ -417,7 +608,7 @@ Test Case - View Scan Results
     Push Image  ${ip}  tester${d}  Test1@34  project${d}  tomcat
     Go Into Project  project${d}
     Go Into Repo  project${d}/tomcat
-    Scan Repo  latest
+    Scan Repo  latest  Succeed
     Summary Chart Should Display  latest
     View Repo Scan Details
     Close Browser
@@ -429,7 +620,7 @@ Test Case - View Scan Error
     Push Image  ${ip}  tester${d}  Test1@34  project${d}  vmware/photon:1.0
     Go Into Project  project${d}
     Go Into Repo  project${d}/vmware/photon
-    Scan Repo  1.0
+    Scan Repo  1.0  Fail
     View Scan Error Log
     Close Browser
 

@@ -21,11 +21,11 @@ import (
 	"time"
 
 	"github.com/vmware/harbor/src/common/dao"
+	common_job "github.com/vmware/harbor/src/common/job"
 	"github.com/vmware/harbor/src/common/models"
 	"github.com/vmware/harbor/src/common/utils/log"
 	"github.com/vmware/harbor/src/replication/core"
 	api_models "github.com/vmware/harbor/src/ui/api/models"
-	"github.com/vmware/harbor/src/ui/config"
 	"github.com/vmware/harbor/src/ui/utils"
 )
 
@@ -51,7 +51,8 @@ func (ra *RepJobAPI) Prepare() {
 	if len(ra.GetStringFromPath(":id")) != 0 {
 		id, err := ra.GetInt64FromPath(":id")
 		if err != nil {
-			ra.CustomAbort(http.StatusBadRequest, "ID is invalid")
+			ra.HandleBadRequest(fmt.Sprintf("invalid ID: %s", ra.GetStringFromPath(":id")))
+			return
 		}
 		ra.jobID = id
 	}
@@ -63,7 +64,8 @@ func (ra *RepJobAPI) List() {
 
 	policyID, err := ra.GetInt64("policy_id")
 	if err != nil || policyID <= 0 {
-		ra.CustomAbort(http.StatusBadRequest, "invalid policy_id")
+		ra.HandleBadRequest(fmt.Sprintf("invalid policy_id: %s", ra.GetString("policy_id")))
+		return
 	}
 
 	policy, err := core.GlobalController.GetPolicy(policyID)
@@ -73,7 +75,8 @@ func (ra *RepJobAPI) List() {
 	}
 
 	if policy.ID == 0 {
-		ra.CustomAbort(http.StatusNotFound, fmt.Sprintf("policy %d not found", policyID))
+		ra.HandleNotFound(fmt.Sprintf("policy %d not found", policyID))
+		return
 	}
 
 	if !ra.SecurityCtx.HasAllPerm(policy.ProjectIDs[0]) {
@@ -81,42 +84,52 @@ func (ra *RepJobAPI) List() {
 		return
 	}
 
-	repository := ra.GetString("repository")
-	statuses := ra.GetStrings("status")
+	query := &models.RepJobQuery{
+		PolicyID: policyID,
+		// hide the schedule job, the schedule job is used to trigger replication
+		// for scheduled policy
+		Operations: []string{models.RepOpTransfer, models.RepOpDelete},
+	}
 
-	var startTime *time.Time
+	query.Repository = ra.GetString("repository")
+	query.Statuses = ra.GetStrings("status")
+
 	startTimeStr := ra.GetString("start_time")
 	if len(startTimeStr) != 0 {
 		i, err := strconv.ParseInt(startTimeStr, 10, 64)
 		if err != nil {
-			ra.CustomAbort(http.StatusBadRequest, "invalid start_time")
+			ra.HandleBadRequest(fmt.Sprintf("invalid start_time: %s", startTimeStr))
+			return
 		}
 		t := time.Unix(i, 0)
-		startTime = &t
+		query.StartTime = &t
 	}
 
-	var endTime *time.Time
 	endTimeStr := ra.GetString("end_time")
 	if len(endTimeStr) != 0 {
 		i, err := strconv.ParseInt(endTimeStr, 10, 64)
 		if err != nil {
-			ra.CustomAbort(http.StatusBadRequest, "invalid end_time")
+			ra.HandleBadRequest(fmt.Sprintf("invalid end_time: %s", endTimeStr))
+			return
 		}
 		t := time.Unix(i, 0)
-		endTime = &t
+		query.EndTime = &t
 	}
 
-	page, pageSize := ra.GetPaginationParams()
+	query.Page, query.Size = ra.GetPaginationParams()
 
-	jobs, total, err := dao.FilterRepJobs(policyID, repository, statuses,
-		startTime, endTime, pageSize, pageSize*(page-1))
+	total, err := dao.GetTotalCountOfRepJobs(query)
 	if err != nil {
-		log.Errorf("failed to filter jobs according policy ID %d, repository %s, status %v, start time %v, end time %v: %v",
-			policyID, repository, statuses, startTime, endTime, err)
-		ra.CustomAbort(http.StatusInternalServerError, "")
+		ra.HandleInternalServerError(fmt.Sprintf("failed to get total count of repository jobs of policy %d: %v", policyID, err))
+		return
+	}
+	jobs, err := dao.GetRepJobs(query)
+	if err != nil {
+		ra.HandleInternalServerError(fmt.Sprintf("failed to get repository jobs, query: %v :%v", query, err))
+		return
 	}
 
-	ra.SetPaginationHeader(total, page, pageSize)
+	ra.SetPaginationHeader(total, query.Page, query.Size)
 
 	ra.Data["json"] = jobs
 	ra.ServeJSON()
@@ -125,7 +138,8 @@ func (ra *RepJobAPI) List() {
 // Delete ...
 func (ra *RepJobAPI) Delete() {
 	if ra.jobID == 0 {
-		ra.CustomAbort(http.StatusBadRequest, "id is nil")
+		ra.HandleBadRequest("ID is nil")
+		return
 	}
 
 	job, err := dao.GetRepJob(ra.jobID)
@@ -135,11 +149,13 @@ func (ra *RepJobAPI) Delete() {
 	}
 
 	if job == nil {
-		ra.CustomAbort(http.StatusNotFound, fmt.Sprintf("job %d not found", ra.jobID))
+		ra.HandleNotFound(fmt.Sprintf("job %d not found", ra.jobID))
+		return
 	}
 
 	if job.Status == models.JobPending || job.Status == models.JobRunning {
-		ra.CustomAbort(http.StatusBadRequest, fmt.Sprintf("job is %s, can not be deleted", job.Status))
+		ra.HandleBadRequest(fmt.Sprintf("job is %s, can not be deleted", job.Status))
+		return
 	}
 
 	if err = dao.DeleteRepJob(ra.jobID); err != nil {
@@ -151,7 +167,8 @@ func (ra *RepJobAPI) Delete() {
 // GetLog ...
 func (ra *RepJobAPI) GetLog() {
 	if ra.jobID == 0 {
-		ra.CustomAbort(http.StatusBadRequest, "id is nil")
+		ra.HandleBadRequest("ID is nil")
+		return
 	}
 
 	job, err := dao.GetRepJob(ra.jobID)
@@ -176,10 +193,17 @@ func (ra *RepJobAPI) GetLog() {
 		return
 	}
 
-	url := buildJobLogURL(strconv.FormatInt(ra.jobID, 10), ReplicationJobType)
-	err = utils.RequestAsUI(http.MethodGet, url, nil, utils.NewJobLogRespHandler(&ra.BaseAPI))
+	logBytes, err := utils.GetJobServiceClient().GetJobLog(job.UUID)
 	if err != nil {
-		ra.RenderError(http.StatusInternalServerError, err.Error())
+		ra.HandleInternalServerError(fmt.Sprintf("failed to get log of job %s: %v",
+			job.UUID, err))
+		return
+	}
+	ra.Ctx.ResponseWriter.Header().Set(http.CanonicalHeaderKey("Content-Length"), strconv.Itoa(len(logBytes)))
+	ra.Ctx.ResponseWriter.Header().Set(http.CanonicalHeaderKey("Content-Type"), "text/plain")
+	_, err = ra.Ctx.ResponseWriter.Write(logBytes)
+	if err != nil {
+		ra.HandleInternalServerError(fmt.Sprintf("failed to write log of job %s: %v", job.UUID, err))
 		return
 	}
 }
@@ -196,12 +220,23 @@ func (ra *RepJobAPI) StopJobs() {
 	}
 
 	if policy.ID == 0 {
-		ra.CustomAbort(http.StatusNotFound, fmt.Sprintf("policy %d not found", req.PolicyID))
+		ra.HandleNotFound(fmt.Sprintf("policy %d not found", req.PolicyID))
+		return
 	}
 
-	if err = config.GlobalJobserviceClient.StopReplicationJobs(req.PolicyID); err != nil {
-		ra.HandleInternalServerError(fmt.Sprintf("failed to stop replication jobs of policy %d: %v", req.PolicyID, err))
+	jobs, err := dao.GetRepJobs(&models.RepJobQuery{
+		PolicyID:   policy.ID,
+		Operations: []string{models.RepOpTransfer, models.RepOpDelete},
+	})
+	if err != nil {
+		ra.HandleInternalServerError(fmt.Sprintf("failed to list jobs of policy %d: %v", policy.ID, err))
 		return
+	}
+	for _, job := range jobs {
+		if err = utils.GetJobServiceClient().PostAction(job.UUID, common_job.JobActionStop); err != nil {
+			log.Errorf("failed to stop job id-%d uuid-%s: %v", job.ID, job.UUID, err)
+			continue
+		}
 	}
 }
 

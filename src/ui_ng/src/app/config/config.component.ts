@@ -38,7 +38,8 @@ const TabLinkContentMap = {
     'config-replication': 'replication',
     'config-email': 'email',
     'config-system': 'system_settings',
-    'config-vulnerability': 'vulnerability'
+    'config-vulnerability': 'vulnerability',
+    'config-label': 'system_label',
 };
 
 @Component({
@@ -78,6 +79,10 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
 
     public get withClair(): boolean {
         return this.appConfigService.getConfig().with_clair;
+    }
+
+    public get withAdmiral(): boolean {
+        return this.appConfigService.getConfig().with_admiral;
     }
 
     isCurrentTabLink(tabId: string): boolean {
@@ -200,6 +205,10 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
             this.allConfig.auth_mode.value === 'ldap_auth';
     }
 
+    public get hideBtn(): boolean {
+        return this.currentTabId === 'config-label';
+    }
+
     public get hideMailTestingSpinner(): boolean {
         return !this.testingMailOnGoing || !this.showTestServerBtn;
     }
@@ -253,6 +262,14 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
                     // HERE we choose force way
                     this.retrieveConfig();
 
+                    if (changes['read_only']) {
+                        this.msgHandler.handleReadOnly();
+                    }
+
+                    if (changes && changes['read_only'] === false) {
+                        this.msgHandler.clear();
+                    }
+
                     // Reload bootstrap option
                     this.appConfigService.load().catch(error => console.error('Failed to reload bootstrap option with error: ', error));
 
@@ -264,7 +281,7 @@ export class ConfigurationComponent implements OnInit, OnDestroy {
                 });
         } else {
             // Inprop situation, should not come here
-            console.error('Save obort becasue nothing changed');
+            console.error('Save abort because nothing changed');
         }
     }
 

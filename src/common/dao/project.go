@@ -17,14 +17,11 @@ package dao
 import (
 	"github.com/vmware/harbor/src/common"
 	"github.com/vmware/harbor/src/common/models"
+	"github.com/vmware/harbor/src/common/utils/log"
 
 	"fmt"
 	"time"
-
-	//"github.com/vmware/harbor/src/common/utils/log"
 )
-
-//TODO:transaction, return err
 
 // AddProject adds a project to the database along with project roles information and access log records.
 func AddProject(project models.Project) (int64, error) {
@@ -46,8 +43,45 @@ func AddProject(project models.Project) (int64, error) {
 		return 0, err
 	}
 
-	err = AddProjectMember(projectID, project.OwnerID, models.PROJECTADMIN)
+	pmID, err := addProjectMember(models.Member{
+		ProjectID:  projectID,
+		EntityID:   project.OwnerID,
+		Role:       models.PROJECTADMIN,
+		EntityType: common.UserMember,
+	})
+	if err != nil {
+		return 0, err
+	}
+	if pmID == 0 {
+		return projectID, fmt.Errorf("Failed to add project member, pmid=0")
+	}
 	return projectID, err
+}
+
+func addProjectMember(member models.Member) (int, error) {
+
+	log.Debugf("Adding project member %+v", member)
+
+	o := GetOrmer()
+
+	if member.EntityID <= 0 {
+		return 0, fmt.Errorf("Invalid entity_id, member: %+v", member)
+	}
+
+	if member.ProjectID <= 0 {
+		return 0, fmt.Errorf("Invalid project_id, member: %+v", member)
+	}
+
+	sql := "insert into project_member (project_id, entity_id , role, entity_type) values (?, ?, ?, ?)"
+	r, err := o.Raw(sql, member.ProjectID, member.EntityID, member.Role, member.EntityType).Exec()
+	if err != nil {
+		return 0, err
+	}
+	pmid, err := r.LastInsertId()
+	if err != nil {
+		return 0, err
+	}
+	return int(pmid), err
 }
 
 // GetProjectByID ...
@@ -146,7 +180,7 @@ func projectQueryConditions(query *models.ProjectQueryParam) (string, []interfac
 		sql += ` join project_member pm
 					on p.project_id = pm.project_id
 					join user u2
-					on pm.user_id=u2.user_id`
+					on pm.entity_id=u2.user_id`
 	}
 	sql += ` where p.deleted=0`
 
@@ -157,7 +191,7 @@ func projectQueryConditions(query *models.ProjectQueryParam) (string, []interfac
 
 	if len(query.Name) != 0 {
 		sql += ` and p.name like ?`
-		params = append(params, "%"+escape(query.Name)+"%")
+		params = append(params, "%"+Escape(query.Name)+"%")
 	}
 
 	if query.Member != nil && len(query.Member.Name) != 0 {

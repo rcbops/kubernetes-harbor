@@ -19,7 +19,10 @@ import (
 	"regexp"
 	"strings"
 
+	"github.com/vmware/harbor/src/common"
+
 	"github.com/vmware/harbor/src/common/dao"
+	"github.com/vmware/harbor/src/common/dao/group"
 	"github.com/vmware/harbor/src/common/models"
 	ldapUtils "github.com/vmware/harbor/src/common/utils/ldap"
 	"github.com/vmware/harbor/src/common/utils/log"
@@ -39,7 +42,7 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 	p := m.Principal
 	if len(strings.TrimSpace(p)) == 0 {
 		log.Debugf("LDAP authentication failed for empty user id.")
-		return nil, nil
+		return nil, auth.NewErrAuth("Empty user id")
 	}
 
 	ldapSession, err := ldapUtils.LoadSystemLdapConfig()
@@ -50,7 +53,7 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 
 	if err = ldapSession.Open(); err != nil {
 		log.Warningf("ldap connection fail: %v", err)
-		return nil, nil
+		return nil, err
 	}
 	defer ldapSession.Close()
 
@@ -58,15 +61,15 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 
 	if err != nil {
 		log.Warningf("ldap search fail: %v", err)
-		return nil, nil
+		return nil, err
 	}
 
 	if len(ldapUsers) == 0 {
 		log.Warningf("Not found an entry.")
-		return nil, nil
+		return nil, auth.NewErrAuth("Not found an entry")
 	} else if len(ldapUsers) != 1 {
 		log.Warningf("Found more than one entry.")
-		return nil, nil
+		return nil, auth.NewErrAuth("Multiple entries found")
 	}
 
 	u := models.User{}
@@ -78,7 +81,7 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 
 	if err = ldapSession.Bind(dn, m.Password); err != nil {
 		log.Warningf("Failed to bind user, username: %s, dn: %s, error: %v", u.Username, dn, err)
-		return nil, nil
+		return nil, auth.NewErrAuth(err.Error())
 	}
 
 	return &u, nil
@@ -128,6 +131,45 @@ func (l *Auth) SearchUser(username string) (*models.User, error) {
 	}
 
 	return &user, nil
+}
+
+//SearchGroup -- Search group in ldap authenticator, groupKey is LDAP group DN.
+func (l *Auth) SearchGroup(groupKey string) (*models.UserGroup, error) {
+	ldapSession, err := ldapUtils.LoadSystemLdapConfig()
+
+	if err != nil {
+		return nil, fmt.Errorf("can not load system ldap config: %v", err)
+	}
+
+	if err = ldapSession.Open(); err != nil {
+		log.Warningf("ldap connection fail: %v", err)
+		return nil, err
+	}
+	defer ldapSession.Close()
+	userGroupList, err := ldapSession.SearchGroupByDN(groupKey)
+
+	if err != nil {
+		log.Warningf("ldap search group fail: %v", err)
+		return nil, err
+	}
+
+	if len(userGroupList) == 0 {
+		return nil, fmt.Errorf("Failed to searh ldap group with groupDN:%v", groupKey)
+	}
+	userGroup := models.UserGroup{
+		GroupName:   userGroupList[0].GroupName,
+		LdapGroupDN: userGroupList[0].GroupDN,
+	}
+	return &userGroup, nil
+}
+
+// OnBoardGroup -- Create Group in harbor DB, if altGroupName is not empty, take the altGroupName as groupName in harbor DB.
+func (l *Auth) OnBoardGroup(u *models.UserGroup, altGroupName string) error {
+	if len(altGroupName) > 0 {
+		u.GroupName = altGroupName
+	}
+	u.GroupType = common.LdapGroupType
+	return group.OnBoardUserGroup(u, "LdapGroupDN", "GroupType")
 }
 
 //PostAuthenticate -- If user exist in harbor DB, sync email address, if not exist, call OnBoardUser

@@ -6,6 +6,7 @@ This guide walks you through the fundamentals of using Harbor. You'll learn how 
 * [Manage members of a project.](#managing-members-of-a-project)
 * [Replicate projects to a remote registry.](#replicating-images)
 * [Search projects and repositories.](#searching-projects-and-repositories)
+* [Manage labels.](#managing-labels)
 * [Manage Harbor system if you are the system administrator:](#administrator-options)
   * [Manage users.](#managing-user)
   * [Manage endpoints.](#managing-endpoint)
@@ -14,11 +15,12 @@ This guide walks you through the fundamentals of using Harbor. You'll learn how 
   * [Manage project creation.](#managing-project-creation)
   * [Manage self-registration.](#managing-self-registration)
   * [Manage email settings.](#managing-email-settings)
+  * [Manage registry read only.](#managing-registry-read-only)
 * [Pull and push images using Docker client.](#pulling-and-pushing-images-using-docker-client)
 * [Add description to repositories](#add-description-to-repositories)
 * [Delete repositories and images.](#deleting-repositories)
 * [Content trust.  ](#content-trust)
-* [Vulnerability scanning via Clair.](#vulnerability-scaning-via-clair)
+* [Vulnerability scanning via Clair.](#vulnerability-scanning-via-clair)
 * [Pull image from Harbor in Kubernetes.](#pull-image-from-harbor-in-kubernetes)
 
 ## Role Based Access Control(RBAC)  
@@ -74,9 +76,13 @@ You can create a project after you signed in. Check on the "Access Level" checkb
 
 ![create project](img/new_create_project.png)  
 
-After the project is created, you can browse repositories, members, logs, replication and configuration using the navigation tab.  
+After the project is created, you can browse repositories, members, logs, replication and configuration using the navigation tab.
 
-![browse project](img/new_browse_project.png)  
+![browse project](img/new_browse_project.png)
+
+There are two views to show repositories, listview, and cardview, you can switch between them by click correspond icon.
+
+![browse repositories](img/browse_project_repositories.png)
 
 All logs can be listed by clicking "Logs". You can apply a filter by username, or operations and dates under "Advanced Search".  
 
@@ -161,6 +167,31 @@ Entering a keyword in the search field at the top lists all matching projects an
 
 ![browse project](img/new_search.png)
 
+## Managing labels
+Harbor provides two kinds of labels to isolate kinds of resources(only images for now):
+* **Global Level Label**: Managed by system administrators and used to manage the images of the whole system. They can be added to images under any projects.
+* **Project Level Label**: Managed by project administrators under a project and can only be added to the images of the project.
+
+### Managing global level labels
+The system administrators can list, create, update and delete the global level labels under `Administration->Configuration->Labels`:
+
+![manage global level labels](img/manage_global_level_labels.png)
+
+### Managing project level labels
+The project administrators and system administrators can list, create, update and delete the project level labels under `Labels` tab of the project detail page:
+
+![manage project level labels](img/manage_project_level_labels.png)
+
+### Adding labels to/remove labels from images
+Users who have system administrator, project administrator or project developer role can click the `ADD LABELS` button to add labels to or remove labels from images. The label list contains both globel level labels(come first) and project level labels:
+
+![add labels to images](img/add_labels_to_images.png)
+
+### Filtering images by labels
+The images can be filtered by labels:
+
+![filter images by labels](img/filter_images_by_label.png)
+
 ## Administrator options  
 ### Managing user  
 Administrator can add "Administrator" role to one or more ordinary users by checking checkboxes and clicking `SET AS ADMINISTRATOR`. To delete users, checked checkboxes and select `DELETE`. Deleting user is only supported under database authentication mode.
@@ -195,11 +226,25 @@ You can manage whether a user can sign up for a new account. This option is not 
 You can change Harbor's email settings, the mail server is used to send out responses to users who request to reset their password.  
 ![browse project](img/new_config_email.png)
 
+### Managing registry read only
+You can change Harbor's registry read only settings, read only mode will allow 'docker pull' while preventing 'docker push' and the deletion of repository and tag.
+![browse project](img/read_only.png)
+
+If it set to true, deleting repository, tag and pushing image will be disabled. 
+![browse project](img/read_only_enable.png)
+
+```
+$ docker push 10.117.169.182/demo/ubuntu:14.04  
+The push refers to a repository [10.117.169.182/demo/ubuntu]
+0271b8eebde3: Preparing 
+denied: The system is in read only mode. Any modification is prohibited.  
+``` 
+
 ## Pulling and pushing images using Docker client  
 
 **NOTE: Harbor only supports Registry V2 API. You need to use Docker client 1.6.0 or higher.**  
 
-Harbor supports HTTP by default and Docker client tries to connect to Harbor using HTTPS first, so if you encounter an error as below when you pull or push images, you need to add '--insecure-registry' option to ```/etc/default/docker``` (ubuntu) or ```/etc/sysconfig/docker``` (centos) and restart Docker:    
+Harbor supports HTTP by default and Docker client tries to connect to Harbor using HTTPS first, so if you encounter an error as below when you pull or push images, you need to configure insecure registry. Please, read [this document](https://docs.docker.com/registry/insecure/) in order to understand how to do this. 
   
 
 ```Error response from daemon: Get https://myregistrydomain.com/v1/users/: dial tcp myregistrydomain.com:443 getsockopt: connection refused.```   

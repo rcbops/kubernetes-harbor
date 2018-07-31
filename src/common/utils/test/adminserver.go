@@ -42,6 +42,10 @@ var adminServerDefaultConfig = map[string]interface{}{
 	common.LDAPFilter:                 "",
 	common.LDAPScope:                  3,
 	common.LDAPTimeout:                30,
+	common.LDAPGroupBaseDN:            "dc=example,dc=com",
+	common.LDAPGroupSearchFilter:      "objectClass=groupOfNames",
+	common.LDAPGroupSearchScope:       2,
+	common.LDAPGroupAttributeName:     "cn",
 	common.TokenServiceURL:            "http://token_service",
 	common.RegistryURL:                "http://registry",
 	common.EmailHost:                  "127.0.0.1",
@@ -57,7 +61,7 @@ var adminServerDefaultConfig = map[string]interface{}{
 	common.TokenExpiration:            30,
 	common.CfgExpiration:              5,
 	common.AdminInitialPassword:       "password",
-	common.AdmiralEndpoint:            "http://www.vmware.com",
+	common.AdmiralEndpoint:            "",
 	common.WithNotary:                 false,
 	common.WithClair:                  false,
 	common.ClairDBUsername:            "postgres",
@@ -71,6 +75,8 @@ var adminServerDefaultConfig = map[string]interface{}{
 	common.UAAVerifyCert:              false,
 	common.UIURL:                      "http://myui:8888/",
 	common.JobServiceURL:              "http://myjob:8888/",
+	common.ReadOnly:                   false,
+	common.NotaryURL:                  "http://notary-server:4443",
 }
 
 // NewAdminserver returns a mock admin server
@@ -78,8 +84,13 @@ func NewAdminserver(config map[string]interface{}) (*httptest.Server, error) {
 	m := []*RequestHandlerMapping{}
 	if config == nil {
 		config = adminServerDefaultConfig
+	} else {
+		for k, v := range adminServerDefaultConfig {
+			if _, ok := config[k]; !ok {
+				config[k] = v
+			}
+		}
 	}
-
 	b, err := json.Marshal(config)
 	if err != nil {
 		return nil, err

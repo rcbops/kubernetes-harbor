@@ -211,10 +211,65 @@ Set Scan All To None
     click element  //vulnerability-config//select/option[@value='none']
     sleep  1
     click element  ${config_save_button_xpath}
+
 Set Scan All To Daily
     click element  //vulnerability-config//select
     click element  //vulnerability-config//select/option[@value='daily']
     sleep  1
     click element  ${config_save_button_xpath}
+
 Click Scan Now
     click element  //vulnerability-config//button[contains(.,'SCAN')]
+
+
+Enable Read Only
+    ${rc}  ${output}=  Run And Return Rc And Output  curl -u admin:Harbor12345 -s --insecure -H "Content-Type: application/json" -X PUT -d '{"read_only":true}' "https://${ip}/api/configurations"
+    Log To Console  ${output}
+    Should Be Equal As Integers  ${rc}  0
+
+Disable Read Only
+    ${rc}  ${output}=  Run And Return Rc And Output  curl -u admin:Harbor12345 -s --insecure -H "Content-Type: application/json" -X PUT -d '{"read_only":false}' "https://${ip}/api/configurations"
+    Log To Console  ${output}
+    Should Be Equal As Integers  ${rc}  0
+
+## System labels
+Switch To System Labels
+    Sleep  1
+    Click Element  xpath=${configuration_xpath}
+    Click Element  xpath=//*[@id="config-label"]
+
+Create New Labels
+    [Arguments]  ${labelname}
+    Click Element  xpath=//button[contains(.,'New Label')]
+    Sleep  1
+    Input Text  xpath=//*[@id="name"]  ${labelname}
+    Sleep  1
+    Click Element  xpath=//div/form/section//clr-dropdown/button
+    Sleep  1
+    Click Element  xpath=//div/form/section//clr-dropdown/clr-dropdown-menu/label[1]
+    Sleep  1
+    Input Text  xpath=//*[@id="description"]  global
+    Click Element  xpath=//div/form/section/label[4]/button[2]
+    Capture Page Screenshot
+    Wait Until Page Contains  ${labelname}
+
+Update A Label
+    [Arguments]  ${labelname}
+    Click Element  xpath=//clr-dg-row[1]/div/clr-dg-cell[1]/clr-checkbox
+    Sleep  1
+    Click Element  xpath=//button[contains(.,'Edit')]
+    Sleep  1
+    Input Text  xpath=//*[@id="name"]  ${labelname}1
+    Sleep  1
+    Click Element  xpath=//hbr-create-edit-label//form/section//button[2]
+    Capture Page Screenshot
+    Wait Until Page Contains  ${labelname}1
+
+Delete A Label
+    Click Element  xpath=//clr-dg-row[1]/div/clr-dg-cell[1]/clr-checkbox
+    Sleep  1
+    Click ELement  xpath=//button[contains(.,'Delete')]
+    Sleep  3
+    Capture Page Screenshot
+    Click Element  xpath=//clr-modal//div//button[contains(.,'DELETE')]
+    Wait Until Page Contains  Deleted successfully

@@ -23,6 +23,7 @@ import (
 	"github.com/stretchr/testify/require"
 	"github.com/vmware/harbor/src/common"
 	"github.com/vmware/harbor/src/common/dao"
+	"github.com/vmware/harbor/src/common/dao/project"
 	"github.com/vmware/harbor/src/common/models"
 	"github.com/vmware/harbor/src/common/utils/log"
 	"github.com/vmware/harbor/src/ui/promgr"
@@ -122,25 +123,39 @@ func TestMain(m *testing.M) {
 	private.ProjectID = id
 	defer dao.DeleteProject(id)
 
+	var projectAdminPMID, developerUserPMID, guestUserPMID int
 	// add project members
-	err = dao.AddProjectMember(private.ProjectID, projectAdminUser.UserID, common.RoleProjectAdmin)
+	projectAdminPMID, err = project.AddProjectMember(models.Member{
+		ProjectID:  private.ProjectID,
+		EntityID:   projectAdminUser.UserID,
+		EntityType: common.UserMember,
+		Role:       common.RoleProjectAdmin,
+	})
 	if err != nil {
 		log.Fatalf("failed to add member: %v", err)
 	}
-	defer dao.DeleteProjectMember(private.ProjectID, projectAdminUser.UserID)
+	defer project.DeleteProjectMemberByID(projectAdminPMID)
 
-	err = dao.AddProjectMember(private.ProjectID, developerUser.UserID, common.RoleDeveloper)
+	developerUserPMID, err = project.AddProjectMember(models.Member{
+		ProjectID:  private.ProjectID,
+		EntityID:   developerUser.UserID,
+		EntityType: common.UserMember,
+		Role:       common.RoleDeveloper,
+	})
 	if err != nil {
 		log.Fatalf("failed to add member: %v", err)
 	}
-	defer dao.DeleteProjectMember(private.ProjectID, developerUser.UserID)
-
-	err = dao.AddProjectMember(private.ProjectID, guestUser.UserID, common.RoleGuest)
+	defer project.DeleteProjectMemberByID(developerUserPMID)
+	guestUserPMID, err = project.AddProjectMember(models.Member{
+		ProjectID:  private.ProjectID,
+		EntityID:   guestUser.UserID,
+		EntityType: common.UserMember,
+		Role:       common.RoleGuest,
+	})
 	if err != nil {
 		log.Fatalf("failed to add member: %v", err)
 	}
-	defer dao.DeleteProjectMember(private.ProjectID, guestUser.UserID)
-
+	defer project.DeleteProjectMemberByID(guestUserPMID)
 	os.Exit(m.Run())
 }
 

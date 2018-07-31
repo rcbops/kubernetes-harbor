@@ -29,6 +29,15 @@ const (
 	RoleDeveloper    = 2
 	RoleGuest        = 3
 
+	LabelLevelSystem  = "s"
+	LabelLevelUser    = "u"
+	LabelScopeGlobal  = "g"
+	LabelScopeProject = "p"
+
+	ResourceTypeProject    = "p"
+	ResourceTypeRepository = "r"
+	ResourceTypeImage      = "i"
+
 	ExtEndpoint                 = "ext_endpoint"
 	AUTHMode                    = "auth_mode"
 	DatabaseType                = "database_type"
@@ -50,6 +59,10 @@ const (
 	LDAPScope                   = "ldap_scope"
 	LDAPTimeout                 = "ldap_timeout"
 	LDAPVerifyCert              = "ldap_verify_cert"
+	LDAPGroupBaseDN             = "ldap_group_base_dn"
+	LDAPGroupSearchFilter       = "ldap_group_search_filter"
+	LDAPGroupAttributeName      = "ldap_group_attribute_name"
+	LDAPGroupSearchScope        = "ldap_group_search_scope"
 	TokenServiceURL             = "token_service_url"
 	RegistryURL                 = "registry_url"
 	EmailHost                   = "email_host"
@@ -84,4 +97,99 @@ const (
 	CfgDriverJSON               = "json"
 	NewHarborAdminName          = "admin@harbor.local"
 	RegistryStorageProviderName = "registry_storage_provider_name"
+	UserMember                  = "u"
+	GroupMember                 = "g"
+	ReadOnly                    = "read_only"
+	ClairURL                    = "clair_url"
+	NotaryURL                   = "notary_url"
+	DefaultAdminserverEndpoint  = "http://adminserver:8080"
+	DefaultJobserviceEndpoint   = "http://jobservice:8080"
+	DefaultUIEndpoint           = "http://ui:8080"
+	DefaultNotaryEndpoint       = "http://notary-server:4443"
+	LdapGroupType               = 1
+	ReloadKey                   = "reload_key"
+)
+
+// Shared variable, not allowed to modify
+var (
+	// the keys of configurations which user can modify in PUT method and user can
+	// get in GET method
+	HarborValidKeys = []string{
+		AUTHMode,
+		SelfRegistration,
+		LDAPURL,
+		LDAPSearchDN,
+		LDAPSearchPwd,
+		LDAPBaseDN,
+		LDAPUID,
+		LDAPFilter,
+		LDAPScope,
+		LDAPTimeout,
+		LDAPVerifyCert,
+		LDAPGroupAttributeName,
+		LDAPGroupBaseDN,
+		LDAPGroupSearchFilter,
+		LDAPGroupSearchScope,
+		EmailHost,
+		EmailPort,
+		EmailUsername,
+		EmailPassword,
+		EmailFrom,
+		EmailSSL,
+		EmailIdentity,
+		EmailInsecure,
+		ProjectCreationRestriction,
+		TokenExpiration,
+		ScanAllPolicy,
+		UAAClientID,
+		UAAClientSecret,
+		UAAEndpoint,
+		UAAVerifyCert,
+		ReadOnly,
+	}
+
+	//value is default value
+	HarborStringKeysMap = map[string]string{
+		AUTHMode:                   "db_auth",
+		LDAPURL:                    "",
+		LDAPSearchDN:               "",
+		LDAPSearchPwd:              "",
+		LDAPBaseDN:                 "",
+		LDAPUID:                    "",
+		LDAPFilter:                 "",
+		LDAPGroupAttributeName:     "",
+		LDAPGroupBaseDN:            "",
+		LDAPGroupSearchFilter:      "",
+		EmailHost:                  "smtp.mydomain.com",
+		EmailUsername:              "sample_admin@mydomain.com",
+		EmailPassword:              "abc",
+		EmailFrom:                  "admin <sample_admin@mydomain.com>",
+		EmailIdentity:              "",
+		ProjectCreationRestriction: ProCrtRestrEveryone,
+		UAAClientID:                "",
+		UAAEndpoint:                "",
+	}
+
+	HarborNumKeysMap = map[string]int{
+		EmailPort:            25,
+		LDAPScope:            2,
+		LDAPTimeout:          5,
+		LDAPGroupSearchScope: 2,
+		TokenExpiration:      30,
+	}
+
+	HarborBoolKeysMap = map[string]bool{
+		EmailSSL:         false,
+		EmailInsecure:    false,
+		SelfRegistration: true,
+		LDAPVerifyCert:   true,
+		UAAVerifyCert:    true,
+		ReadOnly:         false,
+	}
+
+	HarborPasswordKeys = []string{
+		EmailPassword,
+		LDAPSearchPwd,
+		UAAClientSecret,
+	}
 )

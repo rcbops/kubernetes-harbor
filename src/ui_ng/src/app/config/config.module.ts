@@ -28,7 +28,8 @@ import { ConfigurationEmailComponent } from './email/config-email.component';
   declarations: [
     ConfigurationComponent,
     ConfigurationAuthComponent,
-    ConfigurationEmailComponent],
+    ConfigurationEmailComponent,
+  ],
   exports: [ConfigurationComponent],
   providers: [ConfigurationService]
 })
