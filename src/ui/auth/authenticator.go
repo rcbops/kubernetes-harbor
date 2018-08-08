@@ -141,22 +141,13 @@ func Login(m models.AuthModel) (*models.User, error) {
 		return nil, nil
 	}
 	user, err := authenticator.Authenticate(m)
-<<<<<<< HEAD
-	if user == nil {
-		if err == nil {
-=======
 	if err != nil {
 		if _, ok = err.(ErrAuth); ok {
->>>>>>> v1.5.2
 			log.Debugf("Login failed, locking %s, and sleep for %v", m.Principal, frozenTime)
 			lock.Lock(m.Principal)
 			time.Sleep(frozenTime)
 		}
-<<<<<<< HEAD
-		return user, err
-=======
 		return nil, err
->>>>>>> v1.5.2
 	}
 	err = authenticator.PostAuthenticate(user)
 	return user, err
