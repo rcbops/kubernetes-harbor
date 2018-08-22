@@ -19,6 +19,8 @@ export class AppConfig {
     with_clair: boolean;
     admiral_endpoint: string;
     auth_mode: string;
+    oauth_auth_url: string;
+    oauth_client_id: string;
     registry_url: string;
     project_creation_restriction: string;
     self_registration: boolean;
@@ -36,6 +38,8 @@ export class AppConfig {
         this.with_clair = false;
         this.admiral_endpoint = "";
         this.auth_mode = "db_auth";
+        this.oauth_auth_url = "";
+        this.oauth_client_id = "";
         this.registry_url = "";
         this.project_creation_restriction = "everyone";
         this.self_registration = true;

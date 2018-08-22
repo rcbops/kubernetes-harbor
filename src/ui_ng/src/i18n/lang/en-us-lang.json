@@ -465,6 +465,7 @@
         "AUTH_MODE": "Auth Mode",
         "PRO_CREATION_RESTRICTION": "Project Creation",
         "SELF_REGISTRATION": "Allow Self-Registration",
+        "AUTH_MODE_RACKSPACE": "Rackspace Managed Auth",
         "AUTH_MODE_DB": "Database",
         "AUTH_MODE_LDAP": "LDAP",
         "AUTH_MODE_UAA": "UAA",

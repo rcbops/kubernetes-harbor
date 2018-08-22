@@ -16,15 +16,21 @@ package controllers
 
 import (
 	"bytes"
+	"context"
+	"crypto/tls"
+	"crypto/x509"
+	"fmt"
 	"html/template"
 	"net"
 	"net/http"
 	"os"
 	"regexp"
 	"strconv"
+	"time"
 
 	"github.com/astaxie/beego"
 	"github.com/beego/i18n"
+	jwtgo "github.com/dgrijalva/jwt-go"
 	"github.com/vmware/harbor/src/common"
 	"github.com/vmware/harbor/src/common/dao"
 	"github.com/vmware/harbor/src/common/models"
@@ -33,6 +39,7 @@ import (
 	"github.com/vmware/harbor/src/common/utils/log"
 	"github.com/vmware/harbor/src/ui/auth"
 	"github.com/vmware/harbor/src/ui/config"
+	"golang.org/x/oauth2"
 )
 
 // CommonController handles request from UI that doesn't expect a page, such as /SwitchLanguage /logout ...
@@ -227,6 +234,86 @@ func (cc *CommonController) ResetPassword() {
 	}
 }
 
+// Oauth exchanges OAuth authorization codes for an access token and
+// authenticates (and possibly creates) the user described in the token.
+func (cc *CommonController) Oauth() {
+	// {"name":"Harbor Dev","description":"for Harbor OAuth development","id":"6d3cca7a-5f59-4664-a513-6cb7783d50b0","secret":"7e67a166a29087c8079916e7a4df1c87aa8ea187d547f8e266b7ac98b058ad0c","callback_url":"http://harbor.appfound.co/oauth","signing":{"algorithm":"HS256","key":"a92d1e15853ff92ad0dd772ee3f2a98564526f7d4e3e2892764dbc066b0e61cd"}}
+	customTLSContext := context.TODO()
+	pool, err := x509.SystemCertPool()
+	if err != nil {
+		log.Errorf("error retrieving system cert pool: %v", err)
+		cc.CustomAbort(http.StatusInternalServerError, "SSL error")
+		return
+	}
+
+	client := &http.Client{
+		Timeout: time.Minute,
+		Transport: &http.Transport{
+			TLSClientConfig: &tls.Config{
+				RootCAs:            pool,
+				InsecureSkipVerify: true,
+			},
+		},
+	}
+
+	customTLSContext = context.WithValue(customTLSContext, oauth2.HTTPClient, client)
+
+	cfg, err := config.OAuthConf()
+	if err != nil {
+		log.Errorf("Error loading config: %v", err)
+		cc.CustomAbort(http.StatusInternalServerError, "error loading config")
+		return
+	}
+
+	oc := oauth2.Config{
+		ClientID:     cfg.ClientID,
+		ClientSecret: cfg.ClientSecret,
+		Endpoint: oauth2.Endpoint{
+			AuthURL:  cfg.AuthURL,
+			TokenURL: cfg.TokenURL,
+		},
+	}
+
+	token, err := oc.Exchange(customTLSContext, cc.Input().Get("code"))
+	if err != nil {
+		log.Errorf("Error calling oauth Exchange: %v", err)
+		cc.CustomAbort(http.StatusInternalServerError, "error retrieving oauth token")
+		return
+	}
+
+	data, err := jwtgo.ParseWithClaims(token.AccessToken, &jwtgo.StandardClaims{}, func(t *jwtgo.Token) (interface{}, error) {
+		if t.Method != jwtgo.SigningMethodHS256 {
+			return nil, fmt.Errorf("only HS256 signing is supported")
+		}
+
+		return []byte("a92d1e15853ff92ad0dd772ee3f2a98564526f7d4e3e2892764dbc066b0e61cd"), nil
+	})
+
+	if err != nil {
+		log.Errorf("error parsing JWT: %v", err)
+		cc.CustomAbort(http.StatusInternalServerError, "error parsing oauth response")
+		return
+	}
+
+	log.Debugf("claim data: %+v", data.Claims.(*jwtgo.StandardClaims))
+	user, err := createUser(&models.User{
+		Username: data.Claims.(*jwtgo.StandardClaims).Subject,
+		Email:    fmt.Sprintf("%s@%s", data.Claims.(*jwtgo.StandardClaims).Subject, data.Claims.(*jwtgo.StandardClaims).Issuer),
+	})
+	if err != nil {
+		log.Errorf("error creating user: %v", err)
+		cc.Abort("500")
+		return
+	}
+
+	cc.SetSession("userId", user.UserID)
+	cc.SetSession("username", user.Username)
+	cc.SetSession("isSysAdmin", user.HasAdminRole == 1)
+
+	cc.Redirect("/harbor", http.StatusFound)
+	return
+}
+
 func isUserResetable(u *models.User) bool {
 	if u == nil {
 		return false
@@ -240,6 +327,15 @@ func isUserResetable(u *models.User) bool {
 		return true
 	}
 	return u.UserID == 1
+}
+
+func createUser(u *models.User) (*models.User, error) {
+	err := dao.OnBoardUser(u)
+	if err != nil {
+		return nil, err
+	}
+
+	return u, nil
 }
 
 func init() {

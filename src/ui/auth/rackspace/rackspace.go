@@ -37,43 +37,14 @@ import (
 // Auth implements Authenticator interface to authenticate against Rackspace Managed Kubernetes Auth (kubernetes-auth)
 type Auth struct {
 	auth.DefaultAuthenticateHelper
+	authURL string
+	client  *http.Client
 }
-
-// AuthRequest is the request body format for kubernetes-auth
-type AuthRequest struct {
-	Spec struct {
-		Token string `json:"token"`
-	} `json:"spec"`
-}
-
-// AuthResponse is the response from kubernetes-auth
-// If the user is authenticated, the User struct is filled. Otherwise, the Error string is filled
-type AuthResponse struct {
-	APIVersion string `json:"apiVersion"`
-	Kind       string `json:"kind"`
-	Status     struct {
-		Authenticated bool   `json:"authenticated"`
-		Error         string `json:"error,omitempty"`
-		User          struct {
-			Username string              `json:"username"`
-			UID      string              `json:"uid,omitempty"`
-			Groups   []string            `json:"groups,omitempty"`
-			Extra    map[string][]string `json:"extra,omitempty"`
-		} `json:"user,omitempty"`
-	} `json:"status"`
-}
-
-var (
-	rackspaceMK8SAuthURLTokenEndpoint string
-	client                            http.Client
-)
-
-const openstackCACertFilePath = "/etc/openstack/certs/ca.pem"
 
 // Authenticate checks user's credential against the Rackspace Managed Kubernetes Auth (kubernetes-auth)
 // if the check is successful a dummy record will be inserted into DB, such that this user can
 // be associated to other entities in the system.
-func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
+func (a *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 
 	// kubernetes-auth only uses the token (m.Password) for auth. The username (m.Principal) isn't used at all.
 	// In fact, a user could put anything at all into the username field. It must be ignored.
@@ -93,7 +64,7 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 	log.Debugf("ProvidedUsername=%s Sending auth request: %s", m.Principal, rackspaceMK8SAuthURLTokenEndpoint)
 
 	// send auth request
-	resp, err := client.Post(rackspaceMK8SAuthURLTokenEndpoint, "application/json", bytes.NewReader(authRequestBody))
+	resp, err := a.client.Post(a.authURL+"/authenticate/token", "application/json", bytes.NewReader(authRequestBody))
 	if err != nil {
 		log.Errorf("ProvidedUsername=%s Error sending auth request: %v", m.Principal, err)
 		return nil, err
@@ -172,50 +143,113 @@ func (l *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 	return user, nil
 }
 
-func init() {
-	log.Infof("Initialing Rackspace Managed Kubernetes Auth")
+func (a *Auth) OnBoardUser(u *models.User) error {
+	return nil
+}
 
-	auth.Register("rackspace_mk8s_auth", &Auth{})
-	rackspaceMK8SAuthURL := mk8sAuthURL()
-	rackspaceMK8SAuthURLTokenEndpoint = rackspaceMK8SAuthURL + "/authenticate/token"
+func (a *Auth) OnBoardGroup(g *models.UserGroup, altGroupName string) error {
+	return errors.New("not implemented")
+}
 
-	if strings.HasPrefix(rackspaceMK8SAuthURL, "https") {
-		// Load CA cert
-		caCert, err := ioutil.ReadFile(openstackCACertFilePath)
-		if err != nil {
-			log.Fatalf("Error reading OpenStack CA Cert %s: %v", openstackCACertFilePath, err)
-		}
-		caCertPool := x509.NewCertPool()
-		caCertPool.AppendCertsFromPEM(caCert)
-
-		// Setup HTTPS client
-		tlsConfig := &tls.Config{
-			RootCAs: caCertPool,
-		}
-		transport := &http.Transport{TLSClientConfig: tlsConfig}
-		client = http.Client{Transport: transport}
-	} else {
-		// Setup HTTP client
-		client = http.Client{}
+func (a *Auth) SearchUser(username string) (*models.User, error) {
+	var queryCondition = models.User{
+		Username: username,
 	}
 
-	log.Infof("Initialized Rackspace Managed Kubernetes Auth: rackspaceMK8SAuthURL=%s", rackspaceMK8SAuthURL)
+	return dao.GetUser(queryCondition)
+}
+
+func (a *Auth) SearchGroup(groupDN string) (*models.UserGroup, error) {
+	return nil, errors.New("not implemented")
+}
+
+func (a *Auth) PostAuthenticate(u *models.User) error {
+	return nil
+}
+
+var (
+	rackspaceMK8SAuthURLTokenEndpoint string
+)
+
+func init() {
+	a, err := setupAuth()
+	if err != nil {
+		log.Fatal(err)
+	}
+
+	log.Infof("Initializing Rackspace Managed Auth: url=%q", a.authURL)
+
+	auth.Register("rackspace_mk8s_auth", a)
+}
+
+func setupAuth() (*Auth, error) {
+	return &Auth{
+		authURL: mk8sAuthURL(),
+		client:  getClient(),
+	}, nil
+}
+
+func getClient() *http.Client {
+	const caPath = "/etc/openstack/certs/ca.pem"
+	if needCustomCert(caPath) {
+		ca, err := ioutil.ReadFile(caPath)
+		if err != nil {
+			log.Errorf("Error reading OpenStack CA Cert %s: %v", caPath, err)
+			return http.DefaultClient
+		}
+
+		certs, err := x509.SystemCertPool()
+		if err != nil {
+			log.Errorf("Error getting cert pool: %v", err)
+			return http.DefaultClient
+		}
+
+		certs.AppendCertsFromPEM(ca)
+
+		return &http.Client{
+			Transport: &http.Transport{
+				TLSClientConfig: &tls.Config{
+					RootCAs: certs,
+				},
+			},
+		}
+	}
+
+	return http.DefaultClient
+}
+
+func needCustomCert(caPath string) bool {
+	if !strings.HasPrefix(mk8sAuthURL(), "https") {
+		return false
+	}
+
+	f, err := os.Stat(caPath)
+	if err != nil {
+		return false
+	}
+
+	if f.Size() == 0 {
+		return false
+	}
+
+	return true
 }
 
 func mk8sAuthURL() string {
-	rackspaceMK8SAuthURLEnvVar := "RACKSPACE_MK8S_AUTH_URL"
+	const envVar = "RACKSPACE_MK8S_AUTH_URL"
 
-	rackspaceMK8SAuthURL := os.Getenv(rackspaceMK8SAuthURLEnvVar)
+	authURL := os.Getenv(envVar)
 
-	if len(rackspaceMK8SAuthURL) == 0 {
-		rackspaceMK8SAuthURL = "http://app:8080"
+	if len(authURL) == 0 {
+		log.Warningf("%s is not set", envVar)
+		authURL = "http://app:8080"
 	}
 
-	if _, err := url.ParseRequestURI(rackspaceMK8SAuthURL); err != nil {
-		log.Fatalf("The env var %s is not a valid url %s", rackspaceMK8SAuthURLEnvVar, rackspaceMK8SAuthURL)
+	if _, err := url.ParseRequestURI(authURL); err != nil {
+		log.Fatalf("The env var %s is not a valid url %s", envVar, authURL)
 	}
 
-	return rackspaceMK8SAuthURL
+	return authURL
 }
 
 func randString() string {
@@ -227,12 +261,12 @@ func randString() string {
 	return string(b)
 }
 
-// (fake) default email domain
-const defaultEmailDomain = "fake-rackspace-mk8s.com"
-
 // emailAddress will return a unique email address for the given user
 // Harbor requires email addresses in its database to be unique.
 func emailAddress(u *models.User) string {
+	// (fake) default email domain
+	const defaultEmailDomain = "fake-rackspace-mk8s.com"
+
 	if u.Email != "" {
 		return u.Email
 	}

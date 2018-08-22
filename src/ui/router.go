@@ -44,6 +44,7 @@ func initRouters() {
 		beego.Router("/reset", &controllers.CommonController{}, "post:ResetPassword")
 		beego.Router("/userExists", &controllers.CommonController{}, "post:UserExists")
 		beego.Router("/sendEmail", &controllers.CommonController{}, "get:SendResetEmail")
+		beego.Router("/oauth", &controllers.CommonController{}, "get:Oauth")
 
 		//API:
 		beego.Router("/api/projects/:pid([0-9]+)/members/?:pmid([0-9]+)", &api.ProjectMemberAPI{})

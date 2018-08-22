@@ -23,8 +23,8 @@ import {HTTP_JSON_OPTIONS, maintainUrlQueryParmas, HTTP_GET_OPTIONS} from './sha
 export const systemInfoEndpoint = "/api/systeminfo";
 /**
  * Declare service to handle the bootstrap options
- * 
- * 
+ *
+ *
  * @export
  * @class GlobalSearchService
  */
@@ -55,6 +55,7 @@ export class AppConfigService {
             .catch(error => {
                 //Catch the error
                 console.error("Failed to load bootstrap options with error: ", error);
+                return this.configurations;
             });
     }
 

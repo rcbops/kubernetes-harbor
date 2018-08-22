@@ -190,6 +190,23 @@ func AuthMode() (string, error) {
 	return utils.SafeCastString(cfg[common.AUTHMode]), nil
 }
 
+// OAuthConf returns the OAuth settings
+func OAuthConf() (*models.OAuthSettings, error) {
+	cfg, err := mg.Get()
+	if err != nil {
+		return nil, err
+	}
+
+	o := &models.OAuthSettings{
+		ClientID:     utils.SafeCastString(cfg[common.OauthClientID]),
+		ClientSecret: utils.SafeCastString(cfg[common.OauthClientSecret]),
+		AuthURL:      utils.SafeCastString(cfg[common.OauthAuthURL]),
+		TokenURL:     utils.SafeCastString(cfg[common.OauthTokenURL]),
+	}
+
+	return o, nil
+}
+
 // LDAPConf returns the setting of ldap server
 func LDAPConf() (*models.LdapConf, error) {
 	cfg, err := mg.Get()

@@ -91,6 +91,8 @@ type GeneralInfo struct {
 	WithAdmiral                 bool                             `json:"with_admiral"`
 	AdmiralEndpoint             string                           `json:"admiral_endpoint"`
 	AuthMode                    string                           `json:"auth_mode"`
+	AuthorizationURL            string                           `json:"oauth_auth_url"`
+	ClientID                    string                           `json:"oauth_client_id"`
 	RegistryURL                 string                           `json:"registry_url"`
 	ProjectCreationRestrict     string                           `json:"project_creation_restriction"`
 	SelfRegistration            bool                             `json:"self_registration"`
@@ -172,6 +174,8 @@ func (sia *SystemInfoAPI) GetGeneralInfo() {
 		WithNotary:                  config.WithNotary(),
 		WithClair:                   config.WithClair(),
 		AuthMode:                    utils.SafeCastString(cfg[common.AUTHMode]),
+		AuthorizationURL:            utils.SafeCastString(cfg[common.OauthAuthURL]),
+		ClientID:                    utils.SafeCastString(cfg[common.OauthClientID]),
 		ProjectCreationRestrict:     utils.SafeCastString(cfg[common.ProjectCreationRestriction]),
 		SelfRegistration:            utils.SafeCastBool(cfg[common.SelfRegistration]),
 		RegistryURL:                 registryURL,

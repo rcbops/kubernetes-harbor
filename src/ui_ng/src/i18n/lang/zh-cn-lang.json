@@ -465,6 +465,7 @@
         "AUTH_MODE": "认证模式",
         "PRO_CREATION_RESTRICTION": "项目创建",
         "SELF_REGISTRATION": "允许自注册",
+        "AUTH_MODE_RACKSPACE": "Rackspace Managed Auth",
         "AUTH_MODE_DB": "数据库",
         "AUTH_MODE_LDAP": "LDAP",
         "AUTH_MODE_UAA": "UAA",

@@ -433,6 +433,7 @@
         "AUTH_MODE": "Mode d'Identification",
         "PRO_CREATION_RESTRICTION": "Création du Projet",
         "SELF_REGISTRATION": "Autoriser l'Auto-Inscription",
+        "AUTH_MODE_RACKSPACE": "Rackspace Managed Auth",
         "AUTH_MODE_DB": "Base de données",
         "AUTH_MODE_LDAP": "LDAP",
         "SCOPE_BASE": "Base",

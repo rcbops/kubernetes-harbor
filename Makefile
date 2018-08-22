@@ -243,6 +243,7 @@ ifeq ($(MIGRATORFLAG), true)
 	DOCKERSAVE_PARA+= vmware/harbor-migrator:$(MIGRATORVERSION)
 endif
 
+.PHONY: version
 version:
 	@printf $(UIVERSIONTAG) > $(VERSIONFILEPATH)/$(VERSIONFILENAME);
 
@@ -421,9 +422,11 @@ down:
         read -r -p "Type anything but Y or y to exit. [Y/N]: " CONTINUE; \
     done ; \
     [ $$CONTINUE = "y" ] || [ $$CONTINUE = "Y" ] || (echo "Exiting."; exit 1;)
-	@echo "stoping harbor instance..."
+	@echo "stopping harbor instance..."
 	@$(DOCKERCOMPOSECMD) $(DOCKERCOMPOSE_LIST) down -v
 	@echo "Done."
+
+stop: down
 
 cleanbinary:
 	@echo "cleaning binary..."
