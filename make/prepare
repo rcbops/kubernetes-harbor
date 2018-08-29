@@ -211,6 +211,7 @@ oauth_auth_url = rcp.get("configuration", "oauth_auth_url")
 oauth_token_url = rcp.get("configuration", "oauth_token_url")
 oauth_client_id = rcp.get("configuration", "oauth_client_id")
 oauth_client_secret = rcp.get("configuration", "oauth_client_secret")
+oauth_signing_key = rcp.get("configuration", "oauth_signing_key")
 
 ldap_url = rcp.get("configuration", "ldap_url")
 # this two options are either both set or unset
@@ -344,6 +345,7 @@ render(os.path.join(templates_dir, "adminserver", "env"),
         oauth_token_url=oauth_token_url,
         oauth_client_id=oauth_client_id,
         oauth_client_secret=oauth_client_secret,
+        oauth_signing_key=oauth_signing_key,
         ldap_url=ldap_url,
         ldap_searchdn =ldap_searchdn,
         ldap_search_pwd =ldap_search_pwd,

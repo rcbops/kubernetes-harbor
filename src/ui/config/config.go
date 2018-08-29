@@ -202,6 +202,10 @@ func OAuthConf() (*models.OAuthSettings, error) {
 		ClientSecret: utils.SafeCastString(cfg[common.OauthClientSecret]),
 		AuthURL:      utils.SafeCastString(cfg[common.OauthAuthURL]),
 		TokenURL:     utils.SafeCastString(cfg[common.OauthTokenURL]),
+		SigningKey: models.OAuthSigningKey{
+			Type: "HS256",
+			Data: []byte(utils.SafeCastString(cfg[common.OauthSigningKey])),
+		},
 	}
 
 	return o, nil

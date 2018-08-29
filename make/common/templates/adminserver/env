@@ -7,6 +7,7 @@ OAUTH_AUTH_URL=$oauth_auth_url
 OAUTH_TOKEN_URL=$oauth_token_url
 OAUTH_CLIENT_ID=$oauth_client_id
 OAUTH_CLIENT_SECRET=$oauth_client_secret
+OAUTH_SIGNING_KEY=$oauth_signing_key
 LDAP_URL=$ldap_url
 LDAP_SEARCH_DN=$ldap_searchdn
 LDAP_SEARCH_PWD=$ldap_search_pwd

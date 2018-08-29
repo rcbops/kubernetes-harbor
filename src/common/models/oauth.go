@@ -1,8 +1,8 @@
 package models
 
-type OIDCSettings struct {
-	KeyType string
-	Key     interface{}
+type OAuthSigningKey struct {
+	Type string
+	Data interface{}
 }
 
 type OAuthSettings struct {
@@ -11,5 +11,5 @@ type OAuthSettings struct {
 	Certificate  string
 	AuthURL      string
 	TokenURL     string
-	OIDC         OIDCSettings
+	SigningKey   OAuthSigningKey
 }

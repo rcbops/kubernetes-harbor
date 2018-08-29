@@ -237,7 +237,17 @@ func (cc *CommonController) ResetPassword() {
 // Oauth exchanges OAuth authorization codes for an access token and
 // authenticates (and possibly creates) the user described in the token.
 func (cc *CommonController) Oauth() {
-	// {"name":"Harbor Dev","description":"for Harbor OAuth development","id":"6d3cca7a-5f59-4664-a513-6cb7783d50b0","secret":"7e67a166a29087c8079916e7a4df1c87aa8ea187d547f8e266b7ac98b058ad0c","callback_url":"http://harbor.appfound.co/oauth","signing":{"algorithm":"HS256","key":"a92d1e15853ff92ad0dd772ee3f2a98564526f7d4e3e2892764dbc066b0e61cd"}}
+	type OIDCStandardClaims struct {
+		jwtgo.StandardClaims
+		Name              string `json:"name,omitempty"`
+		GivenName         string `json:"given_name,omitempty"`
+		FamilyName        string `json:"family_name,omitempty"`
+		MiddleName        string `json:"middle_name,omitempty"`
+		Nickname          string `json:"nickname,omitempty"`
+		PreferredUsername string `json:"preferred_username,omitempty"`
+		Email             string `json:"email,omitempty"`
+		EmailVerified     bool   `json:"email_verified"`
+	}
 	customTLSContext := context.TODO()
 	pool, err := x509.SystemCertPool()
 	if err != nil {
@@ -281,12 +291,12 @@ func (cc *CommonController) Oauth() {
 		return
 	}
 
-	data, err := jwtgo.ParseWithClaims(token.AccessToken, &jwtgo.StandardClaims{}, func(t *jwtgo.Token) (interface{}, error) {
+	data, err := jwtgo.ParseWithClaims(token.AccessToken, &OIDCStandardClaims{}, func(t *jwtgo.Token) (interface{}, error) {
 		if t.Method != jwtgo.SigningMethodHS256 {
 			return nil, fmt.Errorf("only HS256 signing is supported")
 		}
 
-		return []byte("a92d1e15853ff92ad0dd772ee3f2a98564526f7d4e3e2892764dbc066b0e61cd"), nil
+		return cfg.SigningKey.Data, nil
 	})
 
 	if err != nil {
@@ -295,10 +305,11 @@ func (cc *CommonController) Oauth() {
 		return
 	}
 
-	log.Debugf("claim data: %+v", data.Claims.(*jwtgo.StandardClaims))
+	claims := data.Claims.(*OIDCStandardClaims)
+
 	user, err := createUser(&models.User{
-		Username: data.Claims.(*jwtgo.StandardClaims).Subject,
-		Email:    fmt.Sprintf("%s@%s", data.Claims.(*jwtgo.StandardClaims).Subject, data.Claims.(*jwtgo.StandardClaims).Issuer),
+		Username: claims.PreferredUsername,
+		Email:    fmt.Sprintf("%s@%s", claims.PreferredUsername, claims.Issuer),
 	})
 	if err != nil {
 		log.Errorf("error creating user: %v", err)

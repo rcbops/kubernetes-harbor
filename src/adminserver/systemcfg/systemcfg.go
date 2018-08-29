@@ -77,6 +77,7 @@ var (
 		common.OauthTokenURL:     "OAUTH_TOKEN_URL",
 		common.OauthClientID:     "OAUTH_CLIENT_ID",
 		common.OauthClientSecret: "OAUTH_CLIENT_SECRET",
+		common.OauthSigningKey:   "OAUTH_SIGNING_KEY",
 		common.LDAPURL:           "LDAP_URL",
 		common.LDAPSearchDN:      "LDAP_SEARCH_DN",
 		common.LDAPSearchPwd:     "LDAP_SEARCH_PWD",
