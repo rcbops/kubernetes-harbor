@@ -40,6 +40,11 @@ const (
 
 	ExtEndpoint                 = "ext_endpoint"
 	AUTHMode                    = "auth_mode"
+	OauthAuthURL                = "oauth_auth_url"
+	OauthTokenURL               = "oauth_token_url"
+	OauthClientID               = "oauth_client_id"
+	OauthClientSecret           = "oauth_client_secret"
+	OauthSigningKey             = "oauth_signing_key"
 	DatabaseType                = "database_type"
 	MySQLHost                   = "mysql_host"
 	MySQLPort                   = "mysql_port"

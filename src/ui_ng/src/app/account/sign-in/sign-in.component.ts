@@ -46,7 +46,7 @@ const expireDays = 10;
 export class SignInComponent implements AfterViewChecked, OnInit {
     redirectUrl: string = "";
     appConfig: AppConfig = new AppConfig();
-    //Remeber me indicator
+    //Remember me indicator
     rememberMe: boolean = false;
     rememberedName: string = "";
 
@@ -137,6 +137,11 @@ export class SignInComponent implements AfterViewChecked, OnInit {
             && this.appConfig.self_registration;
     }
 
+    //Whether show the 'sign up' link
+    public get isOauthAvailable(): boolean {
+        return this.appConfig.oauth_auth_url !== "" && this.appConfig.oauth_client_id !== ""
+    }
+
     public get showForgetPwd(): boolean {
         return this.appConfig.auth_mode !== 'ldap_auth' && this.appConfig.auth_mode !== 'uaa_auth';
     }
@@ -150,6 +155,10 @@ export class SignInComponent implements AfterViewChecked, OnInit {
                 this.rememberedName = "";
             }
         }
+    }
+
+    getSSOURL(): string {
+        return `${this.appConfig.oauth_auth_url}?client_id=${this.appConfig.oauth_client_id}&response_type=code`
     }
 
     remeberMe(): void {
