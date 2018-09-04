@@ -95,7 +95,7 @@ func (a *Auth) Authenticate(m models.AuthModel) (*models.User, error) {
 
 	log.Debugf("ProvidedUsername=%s UID=%s BackendUsername=%s Authenticated=%t Getting user from database", m.Principal, authResp.Status.User.UID, authResp.Status.User.Username, authResp.Status.Authenticated)
 
-	user, err := dao.GetUser(models.User{Realname: authResp.Status.User.UID})
+	user, err := dao.GetUser(models.User{Username: authResp.Status.User.Username})
 	if err != nil {
 		log.Errorf("ProvidedUsername=%s Error getting user from database: %v", m.Principal, err)
 		return nil, err
