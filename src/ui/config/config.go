@@ -479,6 +479,11 @@ func ClairDB() (*models.PostGreSQL, error) {
 	clairDB.Username = utils.SafeCastString(cfg[common.ClairDBUsername])
 	clairDB.Password = utils.SafeCastString(cfg[common.ClairDBPassword])
 	clairDB.Database = utils.SafeCastString(cfg[common.ClairDB])
+
+	if clairDB.Port == 0 {
+		clairDB.Port = 5432
+	}
+
 	return clairDB, nil
 }
 
