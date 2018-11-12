@@ -1,4 +1,6 @@
-FROM vmware/photon:latest
+FROM photon:1.0
+
+MAINTAINER wangyan@vmware.com
 
 # The original script in the docker offical registry image.
 RUN tdnf distro-sync -y \
